@@ -1,0 +1,21 @@
+{
+  "name": "wp-hibou/assets",
+  "description": "Improve handling of assets (js, css) in WordPress",
+  "type": "library",
+  "require": {
+    "php": "^7.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPHibou\\Assets\\": "src"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "alpipego",
+      "email": "alpipego@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable"
+}
