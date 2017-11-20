@@ -15,7 +15,7 @@ namespace WPHibou\Assets;
  */
 class Script extends Asset
 {
-    public $footer = true;
+    public $in_footer = true;
 
     public function __construct($handle)
     {

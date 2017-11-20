@@ -40,7 +40,7 @@ abstract class AbstractAssets
 
     protected function action(Asset $asset)
     {
-        if ( ! isset($asset->action)) {
+        if (! isset($asset->action)) {
             return $asset;
         }
 
@@ -101,7 +101,7 @@ abstract class AbstractAssets
     private function enqueue(Asset $asset)
     {
         if ($asset->condition) {
-            if ($this->group === 'style' && $asset->footer) {
+            if ($this->group === 'style' && $asset->in_footer) {
                 add_action('wp_footer', function () use ($asset) {
                     $func = "wp_enqueue_{$this->group}";
                     $func($asset->handle);
@@ -123,15 +123,16 @@ abstract class AbstractAssets
     private function inline(Asset $asset)
     {
         if ($asset->condition) {
-
-            $path = preg_replace('%(?:https?:)?//[^/]+(/.+)$%', '$1', $asset->src);
+            $path = preg_replace('%^(?:https?:)?//[^/]+(/.+)$%i', '$1', $asset->src);
             $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'file_exists');
-            if ( ! empty($file)) {
+            if (! empty($file)) {
                 $file = array_shift($file);
                 if (filesize($file) < apply_filters('wp-hibou/assets/inline/filesize', 2000)) {
                     $contents = file_get_contents($file);
-                    $contents = preg_replace('%[\t\n]|\h{2,}%', '', $contents);
-                    $contents = preg_replace('%(?:/[/*][^*]+(?:\*/)?)%s', '', $contents);
+                    // replace single line comments
+                    $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
+                    // replace multi line comments
+                    $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
                     $this->dequeue($asset);
 
                     $dependency = end($asset->deps);
@@ -183,8 +184,10 @@ abstract class AbstractAssets
         }
 
         foreach ($aliases as $alias) {
-            $this->collection->registered[$alias]->deps = array_diff($this->collection->registered[$alias]->deps,
-                [$asset->handle]);
+            $this->collection->registered[$alias]->deps = array_diff(
+                $this->collection->registered[$alias]->deps,
+                [$asset->handle]
+            );
         }
     }
 }
