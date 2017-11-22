@@ -8,7 +8,6 @@
 
 namespace WPHibou\Assets;
 
-
 class Scripts extends AbstractAssets
 {
     public function __construct(array $scripts)
@@ -31,10 +30,25 @@ class Scripts extends AbstractAssets
             if (in_array($script->handle, array_keys($this->collection->registered)) || $script->action === 'remove') {
                 continue;
             }
-            wp_register_script($script->handle, $script->src ?: $this->getSrc($script, 'js'), $script->deps ?? [],
-                $script->ver ?? filemtime($this->getPath($script, 'js')), $script->footer ?? true);
-            if ( ! empty($script->localize)) {
+
+            wp_register_script(
+                $script->handle,
+                $script->src ?? $this->getSrc($script, 'js'),
+                $script->deps ?? [],
+                $script->ver ?? (file_exists($path = $this->getPath($script, 'js')) ? filemtime($path) : ''),
+                $script->footer ?? true
+            );
+
+            if (! empty($script->localize)) {
+                $this->localize($script);
             }
+        }
+    }
+
+    private function localize(Script $script)
+    {
+        foreach ($script->localize as $key => $value) {
+            wp_localize_script($script->handle, $key, $value);
         }
     }
 
@@ -53,12 +67,5 @@ class Scripts extends AbstractAssets
         }
 
         return $tag;
-    }
-
-    private function localize(Script $script)
-    {
-        foreach ($script->localize as $key => $value) {
-            wp_localize_script($script->handle, $key, $value);
-        }
     }
 }
