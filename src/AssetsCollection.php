@@ -41,7 +41,7 @@ class AssetsCollection implements AssetsCollectionInterface
             $asset->action = $name;
             $type          = $this->getType($asset);
 
-            return $this->assets[$type][] = $asset;
+            return $this->assets[$type][$asset->handle] = $asset;
         }
     }
 
