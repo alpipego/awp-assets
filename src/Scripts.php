@@ -1,15 +1,15 @@
 <?php
-declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: alpipego
  * Date: 05.12.2016
  * Time: 17:33
  */
+declare(strict_types=1);
 
 namespace WPHibou\Assets;
 
-class Scripts extends AbstractAssets
+final class Scripts extends AbstractAssets
 {
     public function __construct(array $scripts)
     {
@@ -48,9 +48,9 @@ class Scripts extends AbstractAssets
 
     private function localize(Script $script)
     {
-        foreach ($script->localize as $key => $value) {
+        array_walk($script->localize, function ($value, $key) use ($script) {
             wp_localize_script($script->handle, $key, $value);
-        }
+        });
     }
 
     public function deferScripts($tag, $handle)

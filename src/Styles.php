@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace WPHibou\Assets;
 
-class Styles extends AbstractAssets
+final class Styles extends AbstractAssets
 {
     public function __construct(array $assets)
     {

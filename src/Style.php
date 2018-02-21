@@ -1,19 +1,15 @@
 <?php
-declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: alpipego
  * Date: 05.12.2016
  * Time: 13:38
  */
+declare(strict_types=1);
 
 namespace WPHibou\Assets;
 
-/**
- * Class Style
- * @package WPHibou\Assets
- */
-class Style extends Asset implements StyleInterface, AssetsResolverInterface
+final class Style extends Asset implements StyleInterface, AssetsResolverInterface
 {
     public $media = 'all';
 
