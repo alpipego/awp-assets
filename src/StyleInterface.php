@@ -11,5 +11,5 @@ namespace WPHibou\Assets;
 
 interface StyleInterface extends AssetInterface
 {
-    public function media(string $media = 'all'): AssetInterface;
+    public function media(string $media = 'all'): StyleInterface;
 }

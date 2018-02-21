@@ -11,5 +11,5 @@ namespace WPHibou\Assets;
 
 interface ScriptInterface extends AssetInterface
 {
-    public function in_footer(bool $in_footer = false): AssetInterface;
+    public function in_footer(bool $in_footer = false): ScriptInterface;
 }

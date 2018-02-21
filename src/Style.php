@@ -12,17 +12,20 @@ namespace WPHibou\Assets;
 /**
  * Class Style
  * @package WPHibou\Assets
- *
- * @method Asset media(string $media = 'all')
  */
 class Style extends Asset implements StyleInterface
 {
-    use StyleTrait;
-
     public $media = 'all';
 
     public function __construct($handle)
     {
         parent::__construct($handle);
+    }
+
+    public function media(string $media = 'all'): StyleInterface
+    {
+        $this->args = $media;
+
+        return $this;
     }
 }

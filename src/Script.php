@@ -16,12 +16,17 @@ namespace WPHibou\Assets;
  */
 class Script extends Asset implements ScriptInterface
 {
-    use ScriptTrait;
-
     public $in_footer = true;
 
     public function __construct($handle)
     {
         parent::__construct($handle);
+    }
+
+    public function in_footer(bool $in_footer = false) : ScriptInterface
+    {
+        $this->args = $in_footer;
+
+        return $this;
     }
 }
