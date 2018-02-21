@@ -15,8 +15,10 @@ namespace WPHibou\Assets;
  *
  * @method Asset media(string $media = 'all')
  */
-class Style extends Asset
+class Style extends Asset implements StyleInterface
 {
+    use StyleTrait;
+
     public $media = 'all';
 
     public function __construct($handle)
