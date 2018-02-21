@@ -7,19 +7,21 @@ namespace WPHibou\Assets;
  * Class Asset
  * @package WPHibou\Assets
  *
- * @method $this min(bool $min = false)
- * @method $this src(string $src = null)
- * @method $this ver(string $ver = '')
- * @method $this deps(array $deps = [])
- * @method $this extra(array $extra = [])
- * @method $this action(string $action = '')
- * @method $this prio(string $prio = '')
- * @method $this localize(array $localize = [])
- * @method $this data(array $data = [])
- * @method $this in_footer(bool $in_footer = false)
+ * @method $this min(bool $min = false): AssetInterface
+ * @method $this src(string $src = null): AssetInterface
+ * @method $this ver(string $ver = ''): AssetInterface
+ * @method $this deps(array $deps = []): AssetInterface
+ * @method $this extra(array $extra = []): AssetInterface
+ * @method $this action(string $action = ''): AssetInterface
+ * @method $this prio(string $prio = ''): AssetInterface
+ * @method $this localize(array $localize = []): AssetInterface
+ * @method $this data(array $data = []): AssetInterface
+ * @method $this in_footer(bool $in_footer = false): AssetInterface
  */
-class Asset
+class Asset implements AssetInterface
 {
+    use AssetTrait;
+
     public $handle;
     public $condition = true;
     public $src = null;
