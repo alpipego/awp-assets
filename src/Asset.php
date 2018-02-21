@@ -32,6 +32,7 @@ class Asset implements AssetInterface
     public $localize = [];
     public $min = false;
     public $data = [];
+    protected $args = null;
 
     public function __construct($handle)
     {
