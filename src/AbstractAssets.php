@@ -1,11 +1,11 @@
 <?php
-declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: alpipego
  * Date: 05.12.2016
  * Time: 13:49
  */
+declare(strict_types=1);
 
 namespace WPHibou\Assets;
 
@@ -86,25 +86,48 @@ abstract class AbstractAssets
 
     private function requeue(Asset $asset)
     {
-        if ($this->isQueued($asset)) {
+        if ($asset->is_enqueued()) {
+            $asset->condition = ! $asset->condition;
+            $this->dequeue($asset);
+            $asset->condition = ! $asset->condition;
+        }
+
+        $this->enqueue($asset);
+    }
+
+    private function dequeue(Asset $asset)
+    {
+        if ($asset->condition) {
             $func = "wp_dequeue_{$this->group}";
             $func($asset->handle);
-            $this->enqueue($asset);
+            // check if this is part of an aliased dependency group
+            $this->dequeueAlias($asset);
         }
     }
 
-    private function isQueued(Asset $asset): bool
+    private function dequeueAlias(Asset $asset)
     {
-        return wp_script_is($asset->handle);
+        $aliases = [];
+        foreach (array_column($this->collection->registered, 'deps', 'handle') as $alias => $deps) {
+            if (in_array($asset->handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
+                $aliases[] = $alias;
+            }
+        }
+
+        foreach ($aliases as $alias) {
+            $this->collection->registered[$alias]->deps = array_diff(
+                $this->collection->registered[$alias]->deps,
+                [$asset->handle]
+            );
+        }
     }
 
     private function enqueue(Asset $asset)
     {
-        array_walk($asset->data, function ($value, $key) use ($asset) {
-            $this->collection->add_data($asset->handle, $key, $value);
-        });
-
         if ($asset->condition) {
+            array_walk($asset->data, function ($value, $key) use ($asset) {
+                $this->collection->add_data($asset->handle, $key, $value);
+            });
             $func = "wp_enqueue_{$this->group}";
             $func($asset->handle);
         }
@@ -152,32 +175,5 @@ abstract class AbstractAssets
         }
 
         $this->enqueue($asset);
-    }
-
-    private function dequeue(Asset $asset)
-    {
-        if ($asset->condition) {
-            $func = "wp_dequeue_{$this->group}";
-            $func($asset->handle);
-            // check if this is part of an aliased dependency group
-            $this->dequeueAlias($asset);
-        }
-    }
-
-    private function dequeueAlias(Asset $asset)
-    {
-        $aliases = [];
-        foreach (array_column($this->collection->registered, 'deps', 'handle') as $alias => $deps) {
-            if (in_array($asset->handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
-                $aliases[] = $alias;
-            }
-        }
-
-        foreach ($aliases as $alias) {
-            $this->collection->registered[$alias]->deps = array_diff(
-                $this->collection->registered[$alias]->deps,
-                [$asset->handle]
-            );
-        }
     }
 }
