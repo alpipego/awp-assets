@@ -28,6 +28,4 @@ interface AssetInterface
     public function localize(array $localize = []): self;
 
     public function data(array $data = []): self;
-
-    public function in_footer(bool $in_footer = false): self;
 }

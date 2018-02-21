@@ -14,8 +14,10 @@ namespace WPHibou\Assets;
  * @package WPHibou\Assets
  *
  */
-class Script extends Asset
+class Script extends Asset implements ScriptInterface
 {
+    use ScriptTrait;
+
     public $in_footer = true;
 
     public function __construct($handle)
