@@ -17,9 +17,10 @@ namespace WPHibou\Assets;
  * @method $this localize(array $localize = []): AssetInterface
  * @method $this data(array $data = []): AssetInterface
  */
-class Asset implements AssetInterface
+class Asset implements AssetInterface, AssetsResolverInterface
 {
     use AssetTrait;
+    use AssetsResolverTrait;
 
     public $handle;
     public $condition = true;

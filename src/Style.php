@@ -13,7 +13,7 @@ namespace WPHibou\Assets;
  * Class Style
  * @package WPHibou\Assets
  */
-class Style extends Asset implements StyleInterface
+class Style extends Asset implements StyleInterface, AssetsResolverInterface
 {
     public $media = 'all';
 

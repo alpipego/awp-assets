@@ -14,7 +14,7 @@ namespace WPHibou\Assets;
  * @package WPHibou\Assets
  *
  */
-class Script extends Asset implements ScriptInterface
+class Script extends Asset implements ScriptInterface, AssetsResolverInterface
 {
     public $in_footer = true;
 
@@ -23,7 +23,7 @@ class Script extends Asset implements ScriptInterface
         parent::__construct($handle);
     }
 
-    public function in_footer(bool $in_footer = false) : ScriptInterface
+    public function in_footer(bool $in_footer = false): ScriptInterface
     {
         $this->args = $in_footer;
 
