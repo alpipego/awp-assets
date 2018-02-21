@@ -13,10 +13,10 @@ namespace WPHibou\Assets;
  * Class AssetsCollection
  * @package WPHibou\Assets
  *
- * @method $this add(Asset $asset)
- * @method $this remove(Asset $asset)
- * @method $this inline(Asset $asset)
- * @method $this update(Asset $asset)
+ * @method $this add(Asset $asset): ?Asset
+ * @method $this remove(Asset $asset): ?Asset
+ * @method $this inline(Asset $asset): ?Asset
+ * @method $this update(Asset $asset): ?Asset
  */
 class AssetsCollection implements AssetsCollectionInterface
 {

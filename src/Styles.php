@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: alpipego
@@ -27,7 +28,7 @@ class Styles extends AbstractAssets
     public function register()
     {
         foreach ($this->assets as $style) {
-            if ( ! array_key_exists($style->handle, $this->collection->registered) && $style->action !== 'remove') {
+            if (! array_key_exists($style->handle, $this->collection->registered) && $style->action !== 'remove') {
                 wp_register_style($style->handle, $style->src ?: $this->getSrc($style, 'css'), $style->deps ?? [],
                     $style->ver ?? filemtime($this->getPath($style, 'css')), $this->media ?? 'screen');
                 foreach (array_merge($style->data, $style->extra) as $key => $data) {
