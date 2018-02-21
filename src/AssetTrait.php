@@ -55,9 +55,4 @@ trait AssetTrait
     {
         return $this->__call(__FUNCTION__, func_get_args());
     }
-
-    public function in_footer(bool $in_footer = false): AssetInterface
-    {
-        return $this->__call(__FUNCTION__, func_get_args());
-    }
 }
