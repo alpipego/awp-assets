@@ -23,19 +23,18 @@ abstract class AbstractAssets
 
     public function run()
     {
-        add_action('wp_enqueue_scripts', [$this, 'register'], 11);
-        add_action('wp_enqueue_scripts', [$this, 'enqueueAssets'], 12);
+        add_action('wp_enqueue_scripts', [$this, 'register'], 20);
+        add_action('wp_enqueue_scripts', [$this, 'enqueueAssets'], 30);
     }
 
     abstract public function register();
 
     public function enqueueAssets()
     {
-        /** @var Asset $asset */
-        foreach ($this->assets as $asset) {
+        array_walk($this->assets, function (Asset $asset) {
             $asset = $this->action($asset);
             $this->{$asset->action}($asset);
-        }
+        });
     }
 
     protected function action(Asset $asset)
@@ -49,9 +48,7 @@ abstract class AbstractAssets
         if ($asset->action === 'add' || $asset->action === 'update') {
             if (in_array($asset->handle, $this->collection->queue, true)) {
                 // asset is already queued (possibly changed condition)
-                array_walk($merged, function ($value, $field) use ($asset) {
-                    $asset->$field = $value;
-                });
+                $this->remapFields($merged, $asset);
                 $asset->action = 'requeue';
             } else {
                 $asset->action = 'enqueue';
@@ -60,17 +57,22 @@ abstract class AbstractAssets
             // asset is queued, should be removed (still looks at condition)
             $asset->action = 'dequeue';
         } elseif ($asset->action === 'inline') {
-            array_walk($merged, function ($value, $field) use ($asset) {
-                $asset->$field = $value;
-            });
+            $this->remapFields($merged, $asset);
         }
 
         return $asset;
     }
 
+    private function remapFields(array $fields, Asset &$asset)
+    {
+        array_walk($fields, function ($value, $field) use (&$asset) {
+            $asset->$field = $value;
+        });
+    }
+
     protected function getSrc(Asset $asset, string $fragment): string
     {
-        $assetDir = apply_filters('wp-hibou/assets/dir', get_stylesheet_directory_uri());
+        $assetDir = (string)apply_filters('wp-hibou/assets/dir', get_stylesheet_directory_uri());
         $handle   = $asset->min ? $asset->handle . '.min' : $asset->handle;
 
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetDir), $fragment, $handle);
@@ -78,7 +80,7 @@ abstract class AbstractAssets
 
     protected function getPath(Asset $asset, string $fragment): string
     {
-        $assetPath = apply_filters('wp-hibou/assets/path', get_stylesheet_directory());
+        $assetPath = (string)apply_filters('wp-hibou/assets/path', get_stylesheet_directory());
         $handle    = $asset->min ? $asset->handle . '.min' : $asset->handle;
 
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetPath), $fragment, $handle);
@@ -98,18 +100,18 @@ abstract class AbstractAssets
     private function dequeue(Asset $asset)
     {
         if ($asset->condition) {
-            $func = "wp_dequeue_{$this->group}";
-            $func($asset->handle);
+            call_user_func("wp_dequeue_{$this->group}", $asset->handle);
             // check if this is part of an aliased dependency group
-            $this->dequeueAlias($asset);
+            $this->dequeueAliased($asset->handle);
+            $this->dequeueAlias($asset->handle);
         }
     }
 
-    private function dequeueAlias(Asset $asset)
+    private function dequeueAliased(string $handle)
     {
         $aliases = [];
         foreach (array_column($this->collection->registered, 'deps', 'handle') as $alias => $deps) {
-            if (in_array($asset->handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
+            if (in_array($handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
                 $aliases[] = $alias;
             }
         }
@@ -117,9 +119,31 @@ abstract class AbstractAssets
         foreach ($aliases as $alias) {
             $this->collection->registered[$alias]->deps = array_diff(
                 $this->collection->registered[$alias]->deps,
-                [$asset->handle]
+                [$handle]
             );
         }
+    }
+
+    private function dequeueAlias(string $handle)
+    {
+        $alias = [];
+        if (
+            array_key_exists($handle, $this->collection->registered)
+            && empty($this->collection->registered[$handle]->src)
+        ) {
+            $alias = $this->collection->registered[$handle];
+        }
+
+        if (empty($alias)) {
+            return;
+        }
+        array_walk($alias->deps, function ($value) use ($handle) {
+            if (empty($this->collection->registered[$value]->src)) {
+                $this->dequeueAlias($value);
+            }
+            $this->collection->registered[$handle]->deps = [];
+            call_user_func("wp_dequeue_{$this->group}", $value);
+        });
     }
 
     private function enqueue(Asset $asset)
@@ -128,8 +152,7 @@ abstract class AbstractAssets
             array_walk($asset->data, function ($value, $key) use ($asset) {
                 $this->collection->add_data($asset->handle, $key, $value);
             });
-            $func = "wp_enqueue_{$this->group}";
-            $func($asset->handle);
+            call_user_func("wp_enqueue_{$this->group}", $asset->handle);
         }
     }
 
@@ -158,8 +181,7 @@ abstract class AbstractAssets
                                 }
                             });
                         } else {
-                            $func = "wp_add_inline_{$this->group}";
-                            $func($dependency, $contents);
+                            call_user_func("wp_add_inline_{$this->group}", $dependency, $contents);
                         }
 
                         return true;
