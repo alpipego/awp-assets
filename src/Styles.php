@@ -1,14 +1,13 @@
 <?php
-declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: alpipego
  * Date: 05.12.2016
  * Time: 17:29
  */
+declare(strict_types=1);
 
 namespace WPHibou\Assets;
-
 
 class Styles extends AbstractAssets
 {
@@ -29,8 +28,13 @@ class Styles extends AbstractAssets
     {
         foreach ($this->assets as $style) {
             if (! array_key_exists($style->handle, $this->collection->registered) && $style->action !== 'remove') {
-                wp_register_style($style->handle, $style->src ?: $this->getSrc($style, 'css'), $style->deps ?? [],
-                    $style->ver ?? filemtime($this->getPath($style, 'css')), $this->media ?? 'screen');
+                wp_register_style(
+                    $style->handle,
+                    $style->src ?: $this->getSrc($style, 'css'),
+                    $style->deps ?? [],
+                    $style->ver ?? filemtime($this->getPath($style, 'css')),
+                    $this->media ?? 'screen'
+                );
                 foreach (array_merge($style->data, $style->extra) as $key => $data) {
                     $this->collection->add_data($style->handle, $key, $data);
                 }
@@ -47,8 +51,11 @@ class Styles extends AbstractAssets
                     printf('<noscript>%s</noscript>', $tag);
                 });
 
-                return preg_replace('%href=(.[^\'\"].)%', 'href data-href=$1',
-                    preg_replace('%media=([^\s/]+)%', 'media="defer" data-media=$1', $tag));
+                return preg_replace(
+                    '%href=(.[^\'\"].)%',
+                    'href data-href=$1',
+                    preg_replace('%media=([^\s/]+)%', 'media="defer" data-media=$1', $tag)
+                );
             }
         }
 
