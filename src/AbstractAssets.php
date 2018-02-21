@@ -16,7 +16,6 @@ abstract class AbstractAssets
      * @var \WP_Styles | \WP_Scripts $collection
      */
     protected $collection;
-
     /**
      * @var string $group either 'style' or 'script'
      */
@@ -47,12 +46,12 @@ abstract class AbstractAssets
 
         $merged = array_merge((array)$this->collection->registered[$asset->handle], array_filter((array)$asset));
 
-        if ($asset->action === 'add') {
+        if ($asset->action === 'add' || $asset->action === 'update') {
             if (in_array($asset->handle, $this->collection->queue, true)) {
                 // asset is already queued (possibly changed condition)
-                foreach ($merged as $field => $value) {
+                array_walk($merged, function ($value, $field) use ($asset) {
                     $asset->$field = $value;
-                }
+                });
                 $asset->action = 'requeue';
             } else {
                 $asset->action = 'enqueue';
@@ -60,10 +59,10 @@ abstract class AbstractAssets
         } elseif ($asset->action === 'remove') {
             // asset is queued, should be removed (still looks at condition)
             $asset->action = 'dequeue';
-        } elseif ($asset->action === 'inline' || $asset->action === 'update') {
-            foreach ($merged as $field => $value) {
+        } elseif ($asset->action === 'inline') {
+            array_walk($merged, function ($value, $field) use ($asset) {
                 $asset->$field = $value;
-            }
+            });
         }
 
         return $asset;
@@ -101,23 +100,13 @@ abstract class AbstractAssets
 
     private function enqueue(Asset $asset)
     {
-        if ($asset->condition) {
-            if ($this->group === 'style' && $asset->in_footer) {
-                add_action('wp_footer', function () use ($asset) {
-                    $func = "wp_enqueue_{$this->group}";
-                    $func($asset->handle);
-                });
-            } else {
-                $func = "wp_enqueue_{$this->group}";
-                $func($asset->handle);
-            }
-        }
-    }
-
-    private function update(Asset $asset)
-    {
-        foreach ($asset->data as $key => $value) {
+        array_walk($asset->data, function ($value, $key) use ($asset) {
             $this->collection->add_data($asset->handle, $key, $value);
+        });
+
+        if ($asset->condition) {
+            $func = "wp_enqueue_{$this->group}";
+            $func($asset->handle);
         }
     }
 
