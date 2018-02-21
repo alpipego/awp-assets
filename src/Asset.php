@@ -42,6 +42,10 @@ class Asset implements AssetInterface, AssetsResolverInterface
 
     public function __call($name, $args)
     {
+        if (! isset($args[0])) {
+            return $this;
+        }
+
         return $this->__set($name, $args[0]);
     }
 
