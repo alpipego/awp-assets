@@ -13,10 +13,10 @@ namespace WPHibou\Assets;
  * Class AssetsCollection
  * @package WPHibou\Assets
  *
- * @method $this add(Asset $asset): ?AssetInterface
- * @method $this remove(Asset $asset): ?AssetInterface
- * @method $this inline(Asset $asset): ?AssetInterface
- * @method $this update(Asset $asset): ?AssetInterface
+ * @method $this add(AssetInterface $asset): ?AssetInterface
+ * @method $this remove(AssetInterface $asset): ?AssetInterface
+ * @method $this inline(AssetInterface $asset): ?AssetInterface
+ * @method $this update(AssetInterface $asset): ?AssetInterface
  */
 class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInterface
 {
@@ -27,12 +27,12 @@ class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInter
 
     public function run()
     {
-        foreach ($this->assets as $group => $assets) {
+        array_walk($this->assets, function (array $assets, string $group) {
             $classname = __NAMESPACE__ . '\\' . $group . 's';
             if (class_exists($classname)) {
                 (new $classname($assets))->run();
             }
-        }
+        });
     }
 
     public function __call(string $name, Asset $asset): ?AssetInterface
@@ -50,19 +50,26 @@ class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInter
         return end($class);
     }
 
-    public function get(string $handle, string $group): ?Asset
+    public function get(string $handle, string $group = 'script'): ?Asset
     {
         $group = ucfirst($group);
-        $asset = null;
 
-        if (array_key_exists($group, $this->assets)) {
-            array_walk($this->assets[$group], function ($value, $key) use (&$asset, $handle) {
-                if ($key === $handle) {
-                    $asset = $value;
-                }
-            });
+        if ($this->arrayKeyExistsRecursive($this->assets, $group, $handle)) {
+            return $this->assets[$group][$handle];
         }
 
-        return $asset;
+        return null;
+    }
+
+    private function arrayKeyExistsRecursive(array $array, string ...$keys): bool
+    {
+        foreach ($keys as $key) {
+            if (! array_key_exists($key, $array)) {
+                return false;
+            }
+            $array = $array[$key];
+        }
+
+        return true;
     }
 }

@@ -18,6 +18,10 @@ trait AssetsResolverTrait
 
     private function is(string $name, string $handle = null, string $type): bool
     {
+        if (! in_array($type, ['style', 'script'], true)) {
+            return false;
+        }
+
         $state  = strtolower(str_replace('is_', '', $name));
         $handle = $this instanceof Asset ? $this->handle : $handle;
 
