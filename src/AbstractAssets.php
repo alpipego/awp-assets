@@ -191,45 +191,52 @@ abstract class AbstractAssets
 
     private function inline(Asset $asset)
     {
-        if ($asset->condition) {
-            $path = preg_replace('%^(?:https?:)?//[^/]+(/.+)$%i', '$1', $asset->src);
-            $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'file_exists');
-            if (! empty($file)) {
-                $file = array_shift($file);
-                if (filesize($file) < apply_filters('wp-hibou/assets/inline/filesize', 2000)) {
-                    $contents = file_get_contents($file);
-                    // replace single line comments
-                    $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
-                    // replace multi line comments
-                    $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
-                    $this->dequeue($asset);
+        if (! $asset->condition) {
+            return false;
+        }
 
-                    $dependency = end($asset->deps);
-                    $action     = isset($asset->footer) && $asset->footer ? 'wp_footer' : 'wp_head';
-                    if ($dependency) {
-                        // TODO extend this to all groups
-                        if ($dependency === 'jquery') {
-                            add_action($action, function () use ($contents) {
-                                if (wp_script_is('jquery', 'done')) {
-                                    printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                                }
-                            });
-                        } else {
-                            call_user_func("wp_add_inline_{$this->group}", $dependency, $contents);
-                        }
+        $path = preg_replace('%^(?:https?:)?//[^/]+(/.+)$%i', '$1', $asset->src);
+        $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'file_exists');
+        if (empty($file)) {
+            return false;
+        }
 
-                        return true;
-                    } else {
-                        add_action($action, function () use ($contents) {
+        $file = array_shift($file);
+        if (filesize($file) <= (int)apply_filters('wp-hibou/assets/inline/filesize', 2000)) {
+            $contents = file_get_contents($file);
+            // replace single line comments
+            $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
+            // replace multi line comments
+            $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
+            $this->dequeue($asset);
+
+            $dependency = end($asset->deps);
+            $action     = isset($asset->footer) && $asset->footer ? 'wp_footer' : 'wp_head';
+            if ($dependency) {
+                if (! empty($this->getGroup($dependency))) {
+                    add_action($action, function () use ($contents, $dependency) {
+                        if (wp_script_is($dependency, 'done')) {
                             printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                        });
+                        }
+                    });
 
-                        return true;
-                    }
+                    return true;
                 }
+
+                call_user_func("wp_add_inline_{$this->group}", $dependency, $contents);
+
+                return true;
             }
+
+            add_action($action, function () use ($contents) {
+                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+            });
+
+            return true;
         }
 
         $this->enqueue($asset);
+
+        return true;
     }
 }
