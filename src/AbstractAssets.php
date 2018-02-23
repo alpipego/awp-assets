@@ -23,8 +23,8 @@ abstract class AbstractAssets
 
     public function run()
     {
-        add_action('wp_enqueue_scripts', [$this, 'register'], 20);
-        add_action('wp_enqueue_scripts', [$this, 'enqueueAssets'], 30);
+        add_action('wp_enqueue_scripts', [$this, 'register'], 200);
+        add_action('wp_enqueue_scripts', [$this, 'enqueueAssets'], 300);
     }
 
     abstract public function register();
@@ -43,12 +43,10 @@ abstract class AbstractAssets
             return $asset;
         }
 
-        $merged = array_merge((array)$this->collection->registered[$asset->handle], array_filter((array)$asset));
-
-        if ($asset->action === 'add' || $asset->action === 'update') {
-            if (in_array($asset->handle, $this->collection->queue, true)) {
+        if (in_array($asset->action, ['add', 'update'], true)) {
+            if ($asset->is_enqueued()) {
                 // asset is already queued (possibly changed condition)
-                $this->remapFields($merged, $asset);
+                $this->remapFields($asset);
                 $asset->action = 'requeue';
             } else {
                 $asset->action = 'enqueue';
@@ -57,17 +55,37 @@ abstract class AbstractAssets
             // asset is queued, should be removed (still looks at condition)
             $asset->action = 'dequeue';
         } elseif ($asset->action === 'inline') {
-            $this->remapFields($merged, $asset);
+            $this->remapFields($asset);
         }
 
         return $asset;
     }
 
-    private function remapFields(array $fields, Asset &$asset)
+    protected function remapFields(Asset &$asset)
     {
+        $fields = array_merge(
+            (array)$this->collection->registered[$asset->handle],
+            array_filter((array)$asset, function ($value) {
+                if (! is_null($value)) {
+                    if (is_array($value)) {
+                        return ! empty($value);
+                    }
+
+                    return true;
+                }
+            })
+        );
+
         array_walk($fields, function ($value, $field) use (&$asset) {
-            $asset->$field = $value;
+            $asset->{$field} = $value;
         });
+    }
+
+    protected function mergeData(Asset $asset)
+    {
+        foreach (array_merge($asset->data, $asset->extra) as $key => $data) {
+            $this->collection->add_data($asset->handle, $key, $data);
+        }
     }
 
     protected function getSrc(Asset $asset, string $fragment): string
@@ -89,9 +107,7 @@ abstract class AbstractAssets
     private function requeue(Asset $asset)
     {
         if ($asset->is_enqueued()) {
-            $asset->condition = ! $asset->condition;
             $this->dequeue($asset);
-            $asset->condition = ! $asset->condition;
         }
 
         $this->enqueue($asset);
@@ -102,31 +118,26 @@ abstract class AbstractAssets
         if ($asset->condition) {
             call_user_func("wp_dequeue_{$this->group}", $asset->handle);
             // check if this is part of an aliased dependency group
-            $this->dequeueAliased($asset->handle);
-            $this->dequeueAlias($asset->handle);
+            $this->dequeueGroup($asset->handle);
+            $this->dequeueGroupMember($asset->handle);
         }
     }
 
-    private function dequeueAliased(string $handle)
+    protected function dequeueGroup(string $handle)
     {
-        $aliases = [];
-        foreach (array_column($this->collection->registered, 'deps', 'handle') as $alias => $deps) {
-            if (in_array($handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
-                $aliases[] = $alias;
+        $group = $this->getGroup($handle);
+        array_walk($group, function ($value) use ($handle) {
+            if (empty($this->collection->registered[$value]->src)) {
+                $this->dequeueGroup($value);
             }
-        }
-
-        foreach ($aliases as $alias) {
-            $this->collection->registered[$alias]->deps = array_diff(
-                $this->collection->registered[$alias]->deps,
-                [$handle]
-            );
-        }
+            $this->collection->registered[$handle]->deps = [];
+            call_user_func("wp_dequeue_{$this->group}", $value);
+        });
     }
 
-    private function dequeueAlias(string $handle)
+    protected function getGroup(string $handle): array
     {
-        $alias = [];
+        $alias = new \_WP_Dependency();
         if (
             array_key_exists($handle, $this->collection->registered)
             && empty($this->collection->registered[$handle]->src)
@@ -134,16 +145,33 @@ abstract class AbstractAssets
             $alias = $this->collection->registered[$handle];
         }
 
-        if (empty($alias)) {
-            return;
-        }
-        array_walk($alias->deps, function ($value) use ($handle) {
-            if (empty($this->collection->registered[$value]->src)) {
-                $this->dequeueAlias($value);
-            }
-            $this->collection->registered[$handle]->deps = [];
-            call_user_func("wp_dequeue_{$this->group}", $value);
+        return $alias->deps;
+    }
+
+    protected function dequeueGroupMember(string $handle)
+    {
+        $groupMembers = $this->getGroupMember($handle);
+        array_walk($groupMembers, function (string $alias) use ($handle) {
+            $this->collection->registered[$alias]->deps = array_diff(
+                $this->collection->registered[$alias]->deps,
+                [$handle]
+            );
         });
+    }
+
+    protected function getGroupMember(string $handle): array
+    {
+        return array_keys(
+            array_filter(
+                array_column($this->collection->registered, 'deps', 'handle'),
+                function ($deps, $alias) use ($handle) {
+                    if (in_array($handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
+                        return $alias;
+                    }
+                },
+                ARRAY_FILTER_USE_BOTH
+            )
+        );
     }
 
     private function enqueue(Asset $asset)
@@ -154,6 +182,11 @@ abstract class AbstractAssets
             });
             call_user_func("wp_enqueue_{$this->group}", $asset->handle);
         }
+    }
+
+    private function ignore(Asset $asset)
+    {
+        // do nothing
     }
 
     private function inline(Asset $asset)
@@ -174,6 +207,7 @@ abstract class AbstractAssets
                     $dependency = end($asset->deps);
                     $action     = isset($asset->footer) && $asset->footer ? 'wp_footer' : 'wp_head';
                     if ($dependency) {
+                        // TODO extend this to all groups
                         if ($dependency === 'jquery') {
                             add_action($action, function () use ($contents) {
                                 if (wp_script_is('jquery', 'done')) {
