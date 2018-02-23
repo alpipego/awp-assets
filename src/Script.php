@@ -22,6 +22,6 @@ final class Script extends Asset implements ScriptInterface, AssetsResolverInter
     {
         $this->args = $in_footer;
 
-        return $this;
+        return $this->__call(__FUNCTION__, $in_footer);
     }
 }
