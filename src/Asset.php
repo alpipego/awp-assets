@@ -9,7 +9,7 @@ namespace WPHibou\Assets;
  *
  * @method $this min(bool $min = false): AssetInterface
  * @method $this src(string $src = null): AssetInterface
- * @method $this ver(string $ver = ''): AssetInterface
+ * @method $this ver(string $ver = null): AssetInterface
  * @method $this deps(array $deps = []): AssetInterface
  * @method $this extra(array $extra = []): AssetInterface
  * @method $this action(string $action = ''): AssetInterface
@@ -33,7 +33,7 @@ class Asset implements AssetInterface, AssetsResolverInterface
     public $localize = [];
     public $min = false;
     public $data = [];
-    protected $args = null;
+    public $args = null;
 
     public function __construct($handle)
     {
@@ -66,7 +66,7 @@ class Asset implements AssetInterface, AssetsResolverInterface
         return $this;
     }
 
-    public function condition(callable $cond)
+    public function condition(callable $cond) : AssetInterface
     {
         if (! did_action('wp')) {
             add_action('wp', function () use ($cond) {

@@ -15,7 +15,7 @@ interface AssetInterface
 
     public function src(string $src = null): self;
 
-    public function ver(string $ver = ''): self;
+    public function ver(string $ver = null): self;
 
     public function deps(array $deps = []): self;
 
@@ -28,4 +28,6 @@ interface AssetInterface
     public function localize(array $localize = []): self;
 
     public function data(array $data = []): self;
+
+    public function condition(callable $cond): self;
 }
