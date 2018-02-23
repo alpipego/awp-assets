@@ -21,7 +21,7 @@ trait AssetTrait
         return $this->__call(__FUNCTION__, func_get_args());
     }
 
-    public function ver(string $ver = ''): AssetInterface
+    public function ver(string $ver = null): AssetInterface
     {
         return $this->__call(__FUNCTION__, func_get_args());
     }
