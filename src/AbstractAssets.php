@@ -107,71 +107,10 @@ abstract class AbstractAssets
     private function requeue(Asset $asset)
     {
         if ($asset->is_enqueued()) {
-            $this->dequeue($asset);
+            call_user_func("wp_dequeue_{$this->group}", $asset->handle);
         }
 
         $this->enqueue($asset);
-    }
-
-    private function dequeue(Asset $asset)
-    {
-        if ($asset->condition) {
-            call_user_func("wp_dequeue_{$this->group}", $asset->handle);
-            // check if this is part of an aliased dependency group
-            $this->dequeueGroup($asset->handle);
-            $this->dequeueGroupMember($asset->handle);
-        }
-    }
-
-    protected function dequeueGroup(string $handle)
-    {
-        $group = $this->getGroup($handle);
-        array_walk($group, function ($value) use ($handle) {
-            if (empty($this->collection->registered[$value]->src)) {
-                $this->dequeueGroup($value);
-            }
-            $this->collection->registered[$handle]->deps = [];
-            call_user_func("wp_dequeue_{$this->group}", $value);
-        });
-    }
-
-    protected function getGroup(string $handle): array
-    {
-        $alias = new \_WP_Dependency();
-        if (
-            array_key_exists($handle, $this->collection->registered)
-            && empty($this->collection->registered[$handle]->src)
-        ) {
-            $alias = $this->collection->registered[$handle];
-        }
-
-        return $alias->deps;
-    }
-
-    protected function dequeueGroupMember(string $handle)
-    {
-        $groupMembers = $this->getGroupMember($handle);
-        array_walk($groupMembers, function (string $alias) use ($handle) {
-            $this->collection->registered[$alias]->deps = array_diff(
-                $this->collection->registered[$alias]->deps,
-                [$handle]
-            );
-        });
-    }
-
-    protected function getGroupMember(string $handle): array
-    {
-        return array_keys(
-            array_filter(
-                array_column($this->collection->registered, 'deps', 'handle'),
-                function ($deps, $alias) use ($handle) {
-                    if (in_array($handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
-                        return $alias;
-                    }
-                },
-                ARRAY_FILTER_USE_BOTH
-            )
-        );
     }
 
     private function enqueue(Asset $asset)
@@ -238,5 +177,66 @@ abstract class AbstractAssets
         $this->enqueue($asset);
 
         return true;
+    }
+
+    private function dequeue(Asset $asset)
+    {
+        if ($asset->condition) {
+            call_user_func("wp_dequeue_{$this->group}", $asset->handle);
+            // check if this is part of an aliased dependency group
+            $this->dequeueGroup($asset->handle);
+            $this->dequeueGroupMember($asset->handle);
+        }
+    }
+
+    private function dequeueGroup(string $handle)
+    {
+        $group = $this->getGroup($handle);
+        array_walk($group, function ($value) use ($handle) {
+            if (empty($this->collection->registered[$value]->src)) {
+                $this->dequeueGroup($value);
+            }
+            $this->collection->registered[$handle]->deps = [];
+            call_user_func("wp_dequeue_{$this->group}", $value);
+        });
+    }
+
+    private function getGroup(string $handle): array
+    {
+        $alias = new \_WP_Dependency();
+        if (
+            array_key_exists($handle, $this->collection->registered)
+            && empty($this->collection->registered[$handle]->src)
+        ) {
+            $alias = $this->collection->registered[$handle];
+        }
+
+        return $alias->deps;
+    }
+
+    private function dequeueGroupMember(string $handle)
+    {
+        $groupMembers = $this->getGroupMember($handle);
+        array_walk($groupMembers, function (string $alias) use ($handle) {
+            $this->collection->registered[$alias]->deps = array_diff(
+                $this->collection->registered[$alias]->deps,
+                [$handle]
+            );
+        });
+    }
+
+    private function getGroupMember(string $handle): array
+    {
+        return array_keys(
+            array_filter(
+                array_column($this->collection->registered, 'deps', 'handle'),
+                function ($deps, $alias) use ($handle) {
+                    if (in_array($handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
+                        return $alias;
+                    }
+                },
+                ARRAY_FILTER_USE_BOTH
+            )
+        );
     }
 }
