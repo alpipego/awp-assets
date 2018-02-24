@@ -70,10 +70,10 @@ class Asset implements AssetInterface, AssetsResolverInterface
     {
         if (! did_action('wp')) {
             add_action('wp', function () use ($cond) {
-                $this->condition = call_user_func($cond);
+                $this->condition = call_user_func($cond, $this);
             });
         } else {
-            $this->condition = call_user_func($cond);
+            $this->condition = call_user_func($cond, $this);
         }
 
 
