@@ -31,11 +31,12 @@ final class Styles extends AbstractAssets
                 $this->remapFields($style);
                 wp_deregister_style($style->handle);
             }
+
             wp_register_style(
                 $style->handle,
-                $style->src ?: $this->getSrc($style, 'css'),
+                $style->src ?? $this->getSrc($style, 'css'),
                 $style->deps,
-                $style->ver ?? filemtime($this->getPath($style, 'css')),
+                $style->ver ?? file_exists($file = $this->getPath($style, 'css')) ? filemtime($file) : false,
                 $this->media ?? 'screen'
             );
 
