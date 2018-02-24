@@ -201,7 +201,7 @@ abstract class AbstractAssets
         });
     }
 
-    private function getGroup(string $handle): array
+    protected function getGroup(string $handle): array
     {
         $alias = new \_WP_Dependency();
         if (
@@ -225,7 +225,7 @@ abstract class AbstractAssets
         });
     }
 
-    private function getGroupMember(string $handle): array
+    protected function getGroupMember(string $handle): array
     {
         return array_keys(
             array_filter(
