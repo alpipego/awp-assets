@@ -21,7 +21,7 @@ final class Scripts extends AbstractAssets
     public function run()
     {
         parent::run();
-        add_action('wp_enqueue_scripts', [$this, 'updateRegisteredGroup'], 199);
+        add_action('wp_enqueue_scripts', [$this, 'updateRegisteredGroup'], 190);
         add_filter('script_loader_tag', [$this, 'deferScripts'], 20, 2);
     }
 
@@ -29,34 +29,30 @@ final class Scripts extends AbstractAssets
     {
         /** @var Script $script */
         foreach ($this->assets as &$script) {
-            if (! $script->is_registered()) {
+            if (! $script->is_registered() || empty($group = $this->getGroup($script->handle))) {
                 continue;
             }
 
             $this->remapFields($script);
-
-            if (! empty($group = $this->getGroup($script->handle))) {
-                $script->condition('__return_false');
-                $script->action('remove');
-                $registered = wp_scripts()->registered;
-
-                array_walk($group, function ($handle) use ($script, $registered) {
-                    /** @var \_WP_Dependency $registeredScript */
-                    $registeredScript = $registered[$handle];
-                    $dep              = (new Script($handle))
-                        ->action('ignore')
-                        ->src($registeredScript->src)
-                        ->ver($registeredScript->ver)
-                        ->deps($registeredScript->deps)
-                        ->extra($registeredScript->extra ?? [])
-                        ->prio($script->prio)
-                        ->condition('__return_false')
-                        ->in_footer($script->in_footer);
-                    wp_deregister_script($handle);
-                    $this->assets[] = $dep;
-                });
-            }
             wp_deregister_script($script->handle);
+
+            $registered = wp_scripts()->registered;
+
+            array_walk($group, function ($handle) use ($script, $registered) {
+                /** @var \_WP_Dependency $registeredScript */
+                $registeredScript = $registered[$handle];
+                $dep              = (new Script($handle))
+                    ->action('ignore')
+                    ->src($registeredScript->src)
+                    ->ver($registeredScript->ver)
+                    ->deps($registeredScript->deps)
+                    ->extra($registeredScript->extra ?? [])
+                    ->prio($script->prio)
+//                    ->condition('__return_false')
+                    ->in_footer($script->in_footer);
+                wp_deregister_script($handle);
+                $this->assets[] = $dep;
+            });
         }
     }
 
