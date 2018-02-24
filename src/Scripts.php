@@ -48,7 +48,6 @@ final class Scripts extends AbstractAssets
                     ->deps($registeredScript->deps)
                     ->extra($registeredScript->extra ?? [])
                     ->prio($script->prio)
-//                    ->condition('__return_false')
                     ->in_footer($script->in_footer);
                 wp_deregister_script($handle);
                 $this->assets[] = $dep;
