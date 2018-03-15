@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace WPHibou\Assets;
+namespace Alpipego\Assets;
 
 trait AssetTrait
 {

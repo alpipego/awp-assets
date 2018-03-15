@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace WPHibou\Assets;
+namespace Alpipego\Assets;
 
 final class Style extends Asset implements StyleInterface, AssetsResolverInterface
 {

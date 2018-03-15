@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace WPHibou\Assets;
+namespace Alpipego\Assets;
 
 /**
  * Class Asset
- * @package WPHibou\Assets
+ * @package Alpipego\Assets
  *
  * @method $this min(bool $min = false): AssetInterface
  * @method $this src(string $src = null): AssetInterface
