@@ -11,17 +11,17 @@ namespace WPHibou\Assets;
 
 final class Scripts extends AbstractAssets
 {
-    public function __construct(array $scripts)
+    public function __construct(array $scripts, $type = 'wp')
     {
-        $this->assets     = $scripts;
         $this->collection = wp_scripts();
         $this->group      = 'script';
+        parent::__construct($scripts, $type);
     }
 
     public function run()
     {
         parent::run();
-        add_action('wp_enqueue_scripts', [$this, 'updateRegisteredGroup'], 190);
+        add_action("{$this->type}_enqueue_scripts", [$this, 'updateRegisteredGroup'], 190);
         add_filter('script_loader_tag', [$this, 'deferScripts'], 20, 2);
     }
 

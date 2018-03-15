@@ -24,13 +24,19 @@ class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInter
     use AssetsResolverTrait;
 
     private $assets = [];
+    private $type;
+
+    public function __construct($type = 'wp')
+    {
+        $this->type = $type;
+    }
 
     public function run()
     {
         array_walk($this->assets, function (array $assets, string $group) {
             $classname = __NAMESPACE__ . '\\' . $group . 's';
             if (class_exists($classname)) {
-                (new $classname($assets))->run();
+                (new $classname($assets, $this->type))->run();
             }
         });
     }

@@ -11,11 +11,11 @@ namespace WPHibou\Assets;
 
 final class Styles extends AbstractAssets
 {
-    public function __construct(array $assets)
+    public function __construct(array $styles, $type = 'wp')
     {
-        $this->assets     = $assets;
         $this->collection = wp_styles();
-        $this->group      = 'style';
+        $this->group  = 'style';
+        parent::__construct($styles, $type);
     }
 
     public function run()
@@ -26,6 +26,7 @@ final class Styles extends AbstractAssets
 
     public function register()
     {
+        /** @var Asset $style */
         foreach ($this->assets as $style) {
             if ($style->is_registered()) {
                 $this->remapFields($style);

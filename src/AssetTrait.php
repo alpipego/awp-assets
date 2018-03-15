@@ -55,4 +55,9 @@ trait AssetTrait
     {
         return $this->__call(__FUNCTION__, func_get_args());
     }
+
+    public function position(string $position = 'after'): AssetInterface
+    {
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
 }

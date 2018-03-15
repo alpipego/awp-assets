@@ -30,4 +30,6 @@ interface AssetInterface
     public function data(array $data = []): self;
 
     public function condition(callable $cond): self;
+
+    public function position(string $position = 'after'): self;
 }

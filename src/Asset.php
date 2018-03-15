@@ -16,6 +16,7 @@ namespace WPHibou\Assets;
  * @method $this prio(string $prio = ''): AssetInterface
  * @method $this localize(array $localize = []): AssetInterface
  * @method $this data(array $data = []): AssetInterface
+ * @method $this position(string $position = 'after'): AssetInterface
  */
 class Asset implements AssetInterface, AssetsResolverInterface
 {
@@ -34,6 +35,7 @@ class Asset implements AssetInterface, AssetsResolverInterface
     public $min = false;
     public $data = [];
     public $args = null;
+    public $pos = 'after';
 
     public function __construct($handle)
     {

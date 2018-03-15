@@ -20,11 +20,31 @@ abstract class AbstractAssets
      * @var string $group either 'style' or 'script'
      */
     protected $group;
+    protected $type;
+
+    public function __construct(array $assets, string $type = 'wp')
+    {
+        if (! in_array(trim(strtolower($type)), ['wp', 'login', 'admin'], true)) {
+            $type = 'wp';
+        }
+        $this->assets = $assets;
+        $this->type = $type;
+    }
 
     public function run()
     {
-        add_action('wp_enqueue_scripts', [$this, 'register'], 200);
-        add_action('wp_enqueue_scripts', [$this, 'enqueueAssets'], 300);
+        add_action("{$this->type}_enqueue_scripts", [$this, 'register'], 200);
+        add_action("{$this->type}_enqueue_scripts", [$this, 'enqueueAssets'], 300);
+        add_action('wp_print_footer_scripts', [$this, 'forceDequeue'], 1);
+    }
+
+    public function forceDequeue()
+    {
+        array_walk($this->assets, function (Asset $asset) {
+            if (in_array($asset->action, ['dequeue', 'requeue'], true)) {
+                $this->{$asset->action}($asset);
+            }
+        });
     }
 
     abstract public function register();
@@ -142,31 +162,55 @@ abstract class AbstractAssets
 
         $file = array_shift($file);
         if (filesize($file) <= (int)apply_filters('wp-hibou/assets/inline/filesize', 2000)) {
+            $this->dequeue($asset);
+
             $contents = file_get_contents($file);
             // replace single line comments
             $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
             // replace multi line comments
             $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
-            $this->dequeue($asset);
 
-            $dependency = end($asset->deps);
-            $action     = isset($asset->footer) && $asset->footer ? 'wp_footer' : 'wp_head';
-            if ($dependency) {
-                if (! empty($this->getGroup($dependency))) {
-                    add_action($action, function () use ($contents, $dependency) {
-                        if (wp_script_is($dependency, 'done')) {
-                            printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                        }
-                    });
-
-                    return true;
+            $dependencies = [];
+            foreach ($asset->deps as $dep) {
+                if (! empty($group = $this->getGroup($dep))) {
+                    foreach ($group as $item) {
+                        $dependencies[] = $item;
+                    }
+                    continue;
                 }
 
-                call_user_func("wp_add_inline_{$this->group}", $dependency, $contents);
+                $dependencies[] = $dep;
+            }
+            array_unique($dependencies);
+
+            if (count($dependencies) === 1) {
+                call_user_func("wp_add_inline_{$this->group}", end($dependencies), $contents);
 
                 return true;
             }
 
+            $inlined = false;
+            foreach ($dependencies as $dependency) {
+                add_action('wp_head', function () use ($contents, $dependency, $inlined) {
+                    if (wp_script_is($dependency, 'done') && ! $inlined) {
+                        printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                        $inlined = true;
+                    }
+                    if (! $inlined) {
+                        add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
+                            if (wp_script_is($dependency, 'done') && ! $inlined) {
+                                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                                $inlined = true;
+                            }
+                        }, 600);
+                    }
+                }, 600);
+
+                return true;
+            }
+
+
+            $action = isset($asset->in_footer) && $asset->in_footer ? 'wp_footer' : 'wp_head';
             add_action($action, function () use ($contents) {
                 printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
             });
@@ -231,7 +275,7 @@ abstract class AbstractAssets
             array_filter(
                 array_column($this->collection->registered, 'deps', 'handle'),
                 function ($deps, $alias) use ($handle) {
-                    if (in_array($handle, $deps, true) && empty($this->collection->registered[$alias]->src)) {
+                    if (in_array($handle, $deps, true)) {
                         return $alias;
                     }
                 },
