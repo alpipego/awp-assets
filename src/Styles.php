@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace WPHibou\Assets;
+namespace Alpipego\AWP\Assets;
 
 final class Styles extends AbstractAssets
 {
