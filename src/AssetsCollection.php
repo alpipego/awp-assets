@@ -7,11 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace WPHibou\Assets;
+namespace Alpipego\Assets;
 
 /**
  * Class AssetsCollection
- * @package WPHibou\Assets
+ * @package Alpipego\Assets
  *
  * @method $this add(AssetInterface $asset): ?AssetInterface
  * @method $this remove(AssetInterface $asset): ?AssetInterface
