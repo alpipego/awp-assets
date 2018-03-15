@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Time: 12:10
  */
 
-namespace Alpipego\Assets;
+namespace Alpipego\AWP\Assets;
 
 interface AssetsCollectionInterface
 {

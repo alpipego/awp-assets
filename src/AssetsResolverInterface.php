@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Alpipego\Assets;
+namespace Alpipego\AWP\Assets;
 
 interface AssetsResolverInterface
 {

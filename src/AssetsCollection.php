@@ -7,11 +7,11 @@
  */
 declare(strict_types=1);
 
-namespace Alpipego\Assets;
+namespace Alpipego\AWP\Assets;
 
 /**
  * Class AssetsCollection
- * @package Alpipego\Assets
+ * @package Alpipego\AWP\Assets
  *
  * @method $this add(AssetInterface $asset): ?AssetInterface
  * @method $this remove(AssetInterface $asset): ?AssetInterface

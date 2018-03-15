@@ -1,13 +1,16 @@
 {
-  "name": "alpipego/assets",
+  "name": "alpipego/awp-assets",
   "description": "Improve handling of assets (js, css) in WordPress",
   "type": "library",
   "require": {
     "php": "^7.1"
   },
+  "suggest": {
+    "johnpbloch/wordpress-core": ""
+  },
   "autoload": {
     "psr-4": {
-      "Alpipego\\Assets\\": "src"
+      "Alpipego\\AWP\\Assets\\": "src"
     }
   },
   "license": "MIT",

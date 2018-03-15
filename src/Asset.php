@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Alpipego\Assets;
+namespace Alpipego\AWP\Assets;
 
 /**
  * Class Asset
- * @package Alpipego\Assets
+ * @package Alpipego\AWP\Assets
  *
  * @method $this min(bool $min = false): AssetInterface
  * @method $this src(string $src = null): AssetInterface

@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Alpipego\Assets;
+namespace Alpipego\AWP\Assets;
 
 final class Scripts extends AbstractAssets
 {
