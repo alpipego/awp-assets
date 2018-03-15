@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace WPHibou\Assets;
 
@@ -6,19 +7,22 @@ namespace WPHibou\Assets;
  * Class Asset
  * @package WPHibou\Assets
  *
- * @method $this min(bool $min = false)
- * @method $this src(string $src = null)
- * @method $this ver(string $ver = '')
- * @method $this deps(array $deps = [])
- * @method $this extra(array $extra = [])
- * @method $this action(string $action = '')
- * @method $this prio(string $prio = '')
- * @method $this localize(array $localize = [])
- * @method $this data(array $data = [])
- * @method $this in_footer(bool $in_footer = false)
+ * @method $this min(bool $min = false): AssetInterface
+ * @method $this src(string $src = null): AssetInterface
+ * @method $this ver(string $ver = null): AssetInterface
+ * @method $this deps(array $deps = []): AssetInterface
+ * @method $this extra(array $extra = []): AssetInterface
+ * @method $this action(string $action = ''): AssetInterface
+ * @method $this prio(string $prio = ''): AssetInterface
+ * @method $this localize(array $localize = []): AssetInterface
+ * @method $this data(array $data = []): AssetInterface
+ * @method $this position(string $position = 'after'): AssetInterface
  */
-class Asset
+class Asset implements AssetInterface, AssetsResolverInterface
 {
+    use AssetTrait;
+    use AssetsResolverTrait;
+
     public $handle;
     public $condition = true;
     public $src = null;
@@ -30,7 +34,8 @@ class Asset
     public $localize = [];
     public $min = false;
     public $data = [];
-    public $in_footer = false;
+    public $args = null;
+    public $pos = 'after';
 
     public function __construct($handle)
     {
@@ -39,6 +44,10 @@ class Asset
 
     public function __call($name, $args)
     {
+        if (! isset($args[0])) {
+            return $this;
+        }
+
         return $this->__set($name, $args[0]);
     }
 
@@ -59,14 +68,14 @@ class Asset
         return $this;
     }
 
-    public function condition(callable $cond)
+    public function condition(callable $cond) : AssetInterface
     {
         if (! did_action('wp')) {
             add_action('wp', function () use ($cond) {
-                $this->condition = call_user_func($cond);
+                $this->condition = call_user_func($cond, $this);
             });
         } else {
-            $this->condition = call_user_func($cond);
+            $this->condition = call_user_func($cond, $this);
         }
 
 

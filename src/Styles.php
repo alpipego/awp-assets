@@ -5,17 +5,17 @@
  * Date: 05.12.2016
  * Time: 17:29
  */
+declare(strict_types=1);
 
 namespace WPHibou\Assets;
 
-
-class Styles extends AbstractAssets
+final class Styles extends AbstractAssets
 {
-    public function __construct(array $assets)
+    public function __construct(array $styles, $type = 'wp')
     {
-        $this->assets     = $assets;
         $this->collection = wp_styles();
-        $this->group      = 'style';
+        $this->group  = 'style';
+        parent::__construct($styles, $type);
     }
 
     public function run()
@@ -26,14 +26,22 @@ class Styles extends AbstractAssets
 
     public function register()
     {
+        /** @var Asset $style */
         foreach ($this->assets as $style) {
-            if ( ! array_key_exists($style->handle, $this->collection->registered) && $style->action !== 'remove') {
-                wp_register_style($style->handle, $style->src ?: $this->getSrc($style, 'css'), $style->deps ?? [],
-                    $style->ver ?? filemtime($this->getPath($style, 'css')), $this->media ?? 'screen');
-                foreach (array_merge($style->data, $style->extra) as $key => $data) {
-                    $this->collection->add_data($style->handle, $key, $data);
-                }
+            if ($style->is_registered()) {
+                $this->remapFields($style);
+                wp_deregister_style($style->handle);
             }
+
+            wp_register_style(
+                $style->handle,
+                $style->src ?? $this->getSrc($style, 'css'),
+                $style->deps,
+                $style->ver ?? file_exists($file = $this->getPath($style, 'css')) ? filemtime($file) : false,
+                $this->media ?? 'screen'
+            );
+
+            $this->mergeData($style);
         }
     }
 
@@ -46,8 +54,11 @@ class Styles extends AbstractAssets
                     printf('<noscript>%s</noscript>', $tag);
                 });
 
-                return preg_replace('%href=(.[^\'\"].)%', 'href data-href=$1',
-                    preg_replace('%media=([^\s/]+)%', 'media="defer" data-media=$1', $tag));
+                return preg_replace(
+                    '%href=(.[^\'\"].)%',
+                    'href data-href=$1',
+                    preg_replace('%media=([^\s/]+)%', 'media="defer" data-media=$1', $tag)
+                );
             }
         }
 

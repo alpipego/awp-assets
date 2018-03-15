@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: alpipego
@@ -10,11 +11,11 @@ namespace WPHibou\Assets;
 
 interface AssetsCollectionInterface
 {
-    public function add(Asset $asset);
+    public function add(Asset $asset): ?AssetInterface;
 
-    public function remove(Asset $asset);
+    public function remove(Asset $asset): ?AssetInterface;
 
-    public function inline(Asset $asset);
+    public function inline(Asset $asset): ?AssetInterface;
 
-    public function update(Asset $asset);
+    public function update(Asset $asset): ?AssetInterface;
 }
