@@ -11,14 +11,14 @@ namespace Alpipego\AWP\Assets;
 
 final class Style extends Asset implements StyleInterface, AssetsResolverInterface
 {
-    public $media = 'all';
+    public $media = 'screen';
 
     public function __construct($handle)
     {
         parent::__construct($handle);
     }
 
-    public function media(string $media = 'all'): StyleInterface
+    public function media(string $media = 'screen'): StyleInterface
     {
         $this->args = $media;
 
