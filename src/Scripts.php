@@ -5,7 +5,7 @@
  * Date: 05.12.2016
  * Time: 17:33
  */
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
@@ -29,7 +29,7 @@ final class Scripts extends AbstractAssets
     {
         /** @var Script $script */
         foreach ($this->assets as &$script) {
-            if (! $script->is_registered() || empty($group = $this->getGroup($script->handle))) {
+            if (!$script->is_registered() || empty($group = $this->getGroup($script->handle))) {
                 continue;
             }
 
@@ -59,15 +59,23 @@ final class Scripts extends AbstractAssets
     {
         /** @var Script $script */
         foreach ($this->assets as $script) {
+            $file = '';
+            if (is_null($script->src)) {
+                $file = $this->getPath($script, 'js');
+            }
+
+            $script->src((string)($script->src ?? $this->getSrc($script, 'js')))
+                   ->ver($script->ver ?? (string)(file_exists($file) ? filemtime($file) : ''));
+
             wp_register_script(
                 $script->handle,
-                $script->src ?? $this->getSrc($script, 'js'),
+                $script->src,
                 $script->deps,
-                $script->ver ?? (file_exists($path = $this->getPath($script, 'js')) ? filemtime($path) : ''),
-                $script->in_footer ?? true
+                $script->ver,
+                $script->in_footer
             );
 
-            if (! empty($script->localize)) {
+            if (!empty($script->localize)) {
                 $this->localize($script);
             }
 
