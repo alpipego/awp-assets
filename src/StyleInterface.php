@@ -11,5 +11,5 @@ namespace Alpipego\AWP\Assets;
 
 interface StyleInterface extends AssetInterface
 {
-    public function media(string $media = 'all'): StyleInterface;
+    public function media(string $media = 'screen'): StyleInterface;
 }
