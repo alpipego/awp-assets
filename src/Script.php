@@ -18,7 +18,7 @@ final class Script extends Asset implements ScriptInterface, AssetsResolverInter
         parent::__construct($handle);
     }
 
-    public function in_footer(bool $in_footer = false): ScriptInterface
+    public function in_footer(bool $in_footer = true): ScriptInterface
     {
         $this->args = $in_footer;
 

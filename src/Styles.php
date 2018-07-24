@@ -28,19 +28,28 @@ final class Styles extends AbstractAssets
 
     public function register()
     {
-        /** @var Asset $style */
+        /** @var Style $style */
         foreach ($this->assets as $style) {
             if ($style->is_registered()) {
                 $this->remapFields($style);
                 wp_deregister_style($style->handle);
             }
 
+            $file = '';
+            if (is_null($style->src)) {
+                $file = $this->getPath($style, 'css');
+            }
+
+            $style
+                ->src((string)($style->src ?? $this->getSrc($style, 'css')))
+                ->ver($style->ver ?? (string)(file_exists($file) ? filemtime($file) : ''));
+
             wp_register_style(
                 $style->handle,
-                $style->src ?? $this->getSrc($style, 'css'),
+                $style->src,
                 $style->deps,
-                $style->ver ?? file_exists($file = $this->getPath($style, 'css')) ? filemtime($file) : false,
-                $this->media ?? 'screen'
+                $style->ver,
+                $style->media
             );
 
             $this->mergeData($style);

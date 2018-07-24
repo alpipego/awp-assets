@@ -5,7 +5,7 @@
  * Date: 05.12.2016
  * Time: 13:49
  */
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
@@ -24,11 +24,11 @@ abstract class AbstractAssets
 
     public function __construct(array $assets, string $type = 'wp')
     {
-        if (! in_array(trim(strtolower($type)), ['wp', 'login', 'admin'], true)) {
+        if (!in_array(trim(strtolower($type)), ['wp', 'login', 'admin'], true)) {
             $type = 'wp';
         }
         $this->assets = $assets;
-        $this->type = $type;
+        $this->type   = $type;
     }
 
     public function run()
@@ -59,7 +59,7 @@ abstract class AbstractAssets
 
     protected function action(Asset $asset)
     {
-        if (! isset($asset->action)) {
+        if (!isset($asset->action)) {
             return $asset;
         }
 
@@ -86,9 +86,9 @@ abstract class AbstractAssets
         $fields = array_merge(
             (array)$this->collection->registered[$asset->handle],
             array_filter((array)$asset, function ($value) {
-                if (! is_null($value)) {
+                if (!is_null($value)) {
                     if (is_array($value)) {
-                        return ! empty($value);
+                        return !empty($value);
                     }
 
                     return true;
@@ -108,17 +108,20 @@ abstract class AbstractAssets
         }
     }
 
-    protected function getSrc(Asset $asset, string $fragment): string
+    protected function getSrc(Asset $asset, string $fragment) : string
     {
+
         $assetDir = (string)apply_filters('wp-hibou/assets/dir', get_stylesheet_directory_uri());
+        $assetDir = (string)apply_filters('awp/assets/dir', $assetDir);
         $handle   = $asset->min ? $asset->handle . '.min' : $asset->handle;
 
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetDir), $fragment, $handle);
     }
 
-    protected function getPath(Asset $asset, string $fragment): string
+    protected function getPath(Asset $asset, string $fragment) : string
     {
         $assetPath = (string)apply_filters('wp-hibou/assets/path', get_stylesheet_directory());
+        $assetPath = (string)apply_filters('awp/assets/path', $assetPath);
         $handle    = $asset->min ? $asset->handle . '.min' : $asset->handle;
 
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetPath), $fragment, $handle);
@@ -135,92 +138,22 @@ abstract class AbstractAssets
 
     private function enqueue(Asset $asset)
     {
+        // handle scripts that have been queued late (after `wp_enqueue_script`
+        add_action('wp_print_footer_scripts', function () use ($asset) {
+            if ($asset->is_enqueued() && !$asset->is_done()) {
+                if (!$asset->condition) {
+                    $asset->condition = !$asset->condition;
+                    $this->dequeue($asset);
+                }
+            }
+        }, 5);
+
         if ($asset->condition) {
             array_walk($asset->data, function ($value, $key) use ($asset) {
                 $this->collection->add_data($asset->handle, $key, $value);
             });
             call_user_func("wp_enqueue_{$this->group}", $asset->handle);
         }
-    }
-
-    private function ignore(Asset $asset)
-    {
-        // do nothing
-    }
-
-    private function inline(Asset $asset)
-    {
-        if (! $asset->condition) {
-            return false;
-        }
-
-        $path = preg_replace('%^(?:https?:)?//[^/]+(/.+)$%i', '$1', $asset->src);
-        $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'file_exists');
-        if (empty($file)) {
-            return false;
-        }
-
-        $file = array_shift($file);
-        if (filesize($file) <= (int)apply_filters('wp-hibou/assets/inline/filesize', 2000)) {
-            $this->dequeue($asset);
-
-            $contents = file_get_contents($file);
-            // replace single line comments
-            $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
-            // replace multi line comments
-            $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
-
-            $dependencies = [];
-            foreach ($asset->deps as $dep) {
-                if (! empty($group = $this->getGroup($dep))) {
-                    foreach ($group as $item) {
-                        $dependencies[] = $item;
-                    }
-                    continue;
-                }
-
-                $dependencies[] = $dep;
-            }
-            array_unique($dependencies);
-
-            if (count($dependencies) === 1) {
-                call_user_func("wp_add_inline_{$this->group}", end($dependencies), $contents);
-
-                return true;
-            }
-
-            $inlined = false;
-            foreach ($dependencies as $dependency) {
-                add_action('wp_head', function () use ($contents, $dependency, $inlined) {
-                    if (wp_script_is($dependency, 'done') && ! $inlined) {
-                        printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                        $inlined = true;
-                    }
-                    if (! $inlined) {
-                        add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
-                            if (wp_script_is($dependency, 'done') && ! $inlined) {
-                                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                                $inlined = true;
-                            }
-                        }, 600);
-                    }
-                }, 600);
-
-                return true;
-            }
-
-
-            $action = isset($asset->in_footer) && $asset->in_footer ? 'wp_footer' : 'wp_head';
-            add_action($action, function () use ($contents) {
-                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-            });
-
-            return true;
-        }
-
-        $this->enqueue($asset);
-
-        return true;
     }
 
     private function dequeue(Asset $asset)
@@ -245,7 +178,7 @@ abstract class AbstractAssets
         });
     }
 
-    protected function getGroup(string $handle): array
+    protected function getGroup(string $handle) : array
     {
         $alias = new \_WP_Dependency();
         if (
@@ -269,7 +202,7 @@ abstract class AbstractAssets
         });
     }
 
-    protected function getGroupMember(string $handle): array
+    protected function getGroupMember(string $handle) : array
     {
         return array_keys(
             array_filter(
@@ -282,5 +215,86 @@ abstract class AbstractAssets
                 ARRAY_FILTER_USE_BOTH
             )
         );
+    }
+
+    private function ignore(Asset $asset)
+    {
+        // do nothing
+    }
+
+    private function inline(Asset $asset)
+    {
+        if (!$asset->condition) {
+            return false;
+        }
+
+        $path = preg_replace('%^(?:https?:)?//[^/]+(/.+)$%i', '$1', $asset->src);
+        $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'file_exists');
+        if (empty($file)) {
+            return false;
+        }
+
+        $file = array_shift($file);
+        $filesize=(int)apply_filters('wp-hibou/assets/inline/filesize', 2000);
+        if (filesize($file) <= (int)apply_filters('awp/assets/inline/filesize', $filesize)) {
+            $this->dequeue($asset);
+
+            $contents = file_get_contents($file);
+            // replace single line comments
+            $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
+            // replace multi line comments
+            $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
+
+            $dependencies = [];
+            foreach ($asset->deps as $dep) {
+                if (!empty($group = $this->getGroup($dep))) {
+                    foreach ($group as $item) {
+                        $dependencies[] = $item;
+                    }
+                    continue;
+                }
+
+                $dependencies[] = $dep;
+            }
+            array_unique($dependencies);
+
+            if (count($dependencies) === 1) {
+                call_user_func("wp_add_inline_{$this->group}", end($dependencies), $contents);
+
+                return true;
+            }
+
+            $inlined = false;
+            foreach ($dependencies as $dependency) {
+                add_action('wp_head', function () use ($contents, $dependency, $inlined) {
+                    if (wp_script_is($dependency, 'done') && !$inlined) {
+                        printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                        $inlined = true;
+                    }
+                    if (!$inlined) {
+                        add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
+                            if (wp_script_is($dependency, 'done') && !$inlined) {
+                                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                                $inlined = true;
+                            }
+                        }, 600);
+                    }
+                }, 600);
+
+                return true;
+            }
+
+
+            $action = isset($asset->in_footer) && $asset->in_footer ? 'wp_footer' : 'wp_head';
+            add_action($action, function () use ($contents) {
+                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+            });
+
+            return true;
+        }
+
+        $this->enqueue($asset);
+
+        return true;
     }
 }
