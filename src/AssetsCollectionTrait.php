@@ -11,22 +11,22 @@ namespace Alpipego\AWP\Assets;
 
 trait AssetsCollectionTrait
 {
-    public function add(Asset $asset): ?AssetInterface
+    public function add(AssetInterface $asset): ?AssetInterface
     {
         return $this->__call(__FUNCTION__, $asset);
     }
 
-    public function remove(Asset $asset): ?AssetInterface
+    public function remove(AssetInterface $asset): ?AssetInterface
     {
         return $this->__call(__FUNCTION__, $asset);
     }
 
-    public function update(Asset $asset): ?AssetInterface
+    public function update(AssetInterface $asset): ?AssetInterface
     {
         return $this->__call(__FUNCTION__, $asset);
     }
 
-    public function inline(Asset $asset): ?AssetInterface
+    public function inline(AssetInterface $asset): ?AssetInterface
     {
         return $this->__call(__FUNCTION__, $asset);
     }
