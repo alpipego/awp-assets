@@ -11,11 +11,11 @@ namespace Alpipego\AWP\Assets;
 
 interface AssetsCollectionInterface
 {
-    public function add(Asset $asset): ?AssetInterface;
+    public function add(AssetInterface $asset): ?AssetInterface;
 
-    public function remove(Asset $asset): ?AssetInterface;
+    public function remove(AssetInterface $asset): ?AssetInterface;
 
-    public function inline(Asset $asset): ?AssetInterface;
+    public function inline(AssetInterface $asset): ?AssetInterface;
 
-    public function update(Asset $asset): ?AssetInterface;
+    public function update(AssetInterface $asset): ?AssetInterface;
 }
