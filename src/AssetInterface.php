@@ -25,8 +25,6 @@ interface AssetInterface
 
     public function prio(string $prio = ''): self;
 
-    public function localize(array $localize = []): self;
-
     public function data(array $data = []): self;
 
     public function condition(callable $cond): self;

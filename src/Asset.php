@@ -14,7 +14,6 @@ namespace Alpipego\AWP\Assets;
  * @method $this extra(array $extra = []): AssetInterface
  * @method $this action(string $action = ''): AssetInterface
  * @method $this prio(string $prio = ''): AssetInterface
- * @method $this localize(array $localize = []): AssetInterface
  * @method $this data(array $data = []): AssetInterface
  * @method $this position(string $position = 'after'): AssetInterface
  */
@@ -31,7 +30,6 @@ class Asset implements AssetInterface, AssetsResolverInterface
     public $extra = [];
     public $action = '';
     public $prio = '';
-    public $localize = [];
     public $min = false;
     public $data = [];
     public $args = null;
