@@ -22,6 +22,6 @@ final class Style extends Asset implements StyleInterface, AssetsResolverInterfa
     {
         $this->args = $media;
 
-        return $this;
+        return $this->__call(__FUNCTION__, [$media]);
     }
 }

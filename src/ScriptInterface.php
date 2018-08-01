@@ -5,11 +5,13 @@
  * Date: 21.02.2018
  * Time: 12:50
  */
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
 interface ScriptInterface extends AssetInterface
 {
-    public function in_footer(bool $in_footer = false): ScriptInterface;
+    public function in_footer(bool $in_footer = false) : self;
+
+    public function localize(array $localize = []) : self;
 }
