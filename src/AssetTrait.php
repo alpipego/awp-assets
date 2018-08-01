@@ -46,11 +46,6 @@ trait AssetTrait
         return $this->__call(__FUNCTION__, func_get_args());
     }
 
-    public function localize(array $localize = []): AssetInterface
-    {
-        return $this->__call(__FUNCTION__, func_get_args());
-    }
-
     public function data(array $data = []): AssetInterface
     {
         return $this->__call(__FUNCTION__, func_get_args());
