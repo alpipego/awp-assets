@@ -229,7 +229,7 @@ abstract class AbstractAssets
         }
 
         $path = preg_replace('%^(?:https?:)?//[^/]+(/.+)$%i', '$1', $asset->src);
-        $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'file_exists');
+        $file = array_filter([ABSPATH . $path, ABSPATH . '..' . $path], 'realpath');
         if (empty($file)) {
             return false;
         }
