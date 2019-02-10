@@ -26,8 +26,6 @@ namespace Alpipego\AWP\Assets;
  */
 final class Styles extends AbstractAssets
 {
-    private $polyfill = false;
-
     public function __construct(array $styles, $type = 'wp')
     {
         $this->collection = wp_styles();
@@ -112,12 +110,14 @@ final class Styles extends AbstractAssets
 
     private function addLazyPolyfill()
     {
-        if ($this->polyfill) {
+        static $count = 0;
+        $count++;
+        if ($count > 1) {
             return;
         }
+
         add_action('wp_head', function () {
             printf('<script>%s</script>', file_get_contents(__DIR__ . '/../inc/csspreload.js'));
-            $this->polyfill = true;
         });
     }
 }
