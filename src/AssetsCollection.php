@@ -13,10 +13,10 @@ namespace Alpipego\AWP\Assets;
  * Class AssetsCollection
  * @package Alpipego\AWP\Assets
  *
- * @method $this add(AssetInterface $asset): ?AssetInterface
- * @method $this remove(AssetInterface $asset): ?AssetInterface
- * @method $this inline(AssetInterface $asset): ?AssetInterface
- * @method $this update(AssetInterface $asset): ?AssetInterface
+ * @method add(AssetInterface $asset): ?AssetInterface
+ * @method remove(AssetInterface $asset): ?AssetInterface
+ * @method inline(AssetInterface $asset): ?AssetInterface
+ * @method update(AssetInterface $asset): ?AssetInterface
  */
 class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInterface
 {
