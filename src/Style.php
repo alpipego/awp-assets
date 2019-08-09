@@ -13,11 +13,6 @@ final class Style extends Asset implements StyleInterface, AssetsResolverInterfa
 {
     public $media = 'screen';
 
-    public function __construct($handle)
-    {
-        parent::__construct($handle);
-    }
-
     public function media(string $media = 'screen'): StyleInterface
     {
         $this->args = $media;

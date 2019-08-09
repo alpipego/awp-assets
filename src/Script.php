@@ -14,11 +14,6 @@ final class Script extends Asset implements ScriptInterface, AssetsResolverInter
     public $in_footer = true;
     public $localize = [];
 
-    public function __construct($handle)
-    {
-        parent::__construct($handle);
-    }
-
     public function in_footer(bool $in_footer = true) : ScriptInterface
     {
         $this->args = $in_footer;
