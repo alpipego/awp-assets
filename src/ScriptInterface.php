@@ -13,16 +13,16 @@ namespace Alpipego\AWP\Assets;
  * Interface ScriptInterface
  * @package Alpipego\AWP\Assets
  *
- * @method $this min(bool $min = false): self
- * @method $this src(string $src = null): self
- * @method $this ver(string $ver = null): self
- * @method $this deps(array $deps = []): self
- * @method $this extra(array $extra = []): self
- * @method $this action(string $action = ''): self
- * @method $this prio(string $prio = ''): self
- * @method $this data(array $data = []): self
- * @method $this position(string $position = 'after'): self
- * @method $this condition(callable $cond) : self
+ * @method ScriptInterface min(bool $min = false)
+ * @method ScriptInterface src(string $src = null)
+ * @method ScriptInterface ver(string $ver = null)
+ * @method ScriptInterface deps(array $deps = [])
+ * @method ScriptInterface extra(array $extra = [])
+ * @method ScriptInterface action(string $action = '')
+ * @method ScriptInterface prio(string $prio = '')
+ * @method ScriptInterface data(array $data = [])
+ * @method ScriptInterface position(string $position = 'after')
+ * @method ScriptInterface condition(callable $cond)
  */
 interface ScriptInterface extends AssetInterface
 {
