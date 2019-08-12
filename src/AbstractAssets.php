@@ -93,6 +93,8 @@ abstract class AbstractAssets
 
                     return true;
                 }
+
+                return false;
             })
         );
 
@@ -138,9 +140,9 @@ abstract class AbstractAssets
 
     private function enqueue(Asset $asset)
     {
-        // handle scripts that have been queued late (after `wp_enqueue_script`
+        // handle scripts that have been queued late (after `wp_enqueue_script`)
         add_action('wp_print_footer_scripts', function () use ($asset) {
-            if ($asset->is_enqueued() && !$asset->is_done()) {
+            if ($asset->is_enqueued() && !$asset->is_done() && $asset->is_to_do()) {
                 if (!$asset->condition) {
                     $asset->condition = !$asset->condition;
                     $this->dequeue($asset);
@@ -207,12 +209,9 @@ abstract class AbstractAssets
         return array_keys(
             array_filter(
                 array_column($this->collection->registered, 'deps', 'handle'),
-                function ($deps, $alias) use ($handle) {
-                    if (in_array($handle, $deps, true)) {
-                        return $alias;
+                function ($deps) use ($handle) {
+                    return in_array($handle, $deps, true);
                     }
-                },
-                ARRAY_FILTER_USE_BOTH
             )
         );
     }
@@ -275,7 +274,6 @@ abstract class AbstractAssets
                         add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
                             if (wp_script_is($dependency, 'done') && !$inlined) {
                                 printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                                $inlined = true;
                             }
                         }, 600);
                     }

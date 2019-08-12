@@ -13,16 +13,16 @@ namespace Alpipego\AWP\Assets;
  * Interface StyleInterface
  * @package Alpipego\AWP\Assets
  *
- * @method  min(bool $min = false): self
- * @method src(string $src = null): self
- * @method ver(string $ver = null): self
- * @method deps(array $deps = []): self
- * @method extra(array $extra = []): self
- * @method action(string $action = ''): self
- * @method prio(string $prio = ''): self
- * @method data(array $data = []): self
- * @method condition(callable $cond): self
- * @method position(string $position = 'after'): self
+ * @method StyleInterface min(bool $min = false)
+ * @method StyleInterface src(string $src = null)
+ * @method StyleInterface ver(string $ver = null)
+ * @method StyleInterface deps(array $deps = [])
+ * @method StyleInterface extra(array $extra = [])
+ * @method StyleInterface action(string $action = '')
+ * @method StyleInterface prio(string $prio = '')
+ * @method StyleInterface data(array $data = [])
+ * @method StyleInterface condition(callable $cond)
+ * @method StyleInterface position(string $position = 'after')
  */
 interface StyleInterface extends AssetInterface
 {
