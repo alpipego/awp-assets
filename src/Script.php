@@ -17,7 +17,6 @@ namespace Alpipego\AWP\Assets;
  * @method ScriptInterface src(string $src = null)
  * @method ScriptInterface ver(string $ver = null)
  * @method ScriptInterface deps(array $deps = [])
- * @method ScriptInterface extra(array $extra = [])
  * @method ScriptInterface action(string $action = '')
  * @method ScriptInterface prio(string $prio = '')
  * @method ScriptInterface data(array $data = [])

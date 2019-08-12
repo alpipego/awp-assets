@@ -301,6 +301,7 @@ abstract class AbstractAssets
                         add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
                             if (wp_script_is($dependency, 'done') && !$inlined) {
                                 printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                                $inlined = true;
                             }
                         }, 600);
                     }
