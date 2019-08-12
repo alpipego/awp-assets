@@ -9,6 +9,21 @@ declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
+/**
+ * Class Script
+ * @package Alpipego\AWP\Assets
+ *
+ * @method ScriptInterface min(bool $min = false)
+ * @method ScriptInterface src(string $src = null)
+ * @method ScriptInterface ver(string $ver = null)
+ * @method ScriptInterface deps(array $deps = [])
+ * @method ScriptInterface extra(array $extra = [])
+ * @method ScriptInterface action(string $action = '')
+ * @method ScriptInterface prio(string $prio = '')
+ * @method ScriptInterface data(array $data = [])
+ * @method ScriptInterface position(string $position = 'after')
+ * @method ScriptInterface condition(callable $cond)
+ */
 final class Script extends Asset implements ScriptInterface, AssetsResolverInterface
 {
     public $in_footer = true;
