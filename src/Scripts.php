@@ -44,7 +44,7 @@ final class Scripts extends AbstractAssets
                 $dep              = (new Script($handle))
                     ->action('ignore')
                     ->src($registeredScript->src)
-                    ->ver($registeredScript->ver)
+                    ->ver($registeredScript->ver ?: null)
                     ->deps($registeredScript->deps)
                     ->extra($registeredScript->extra ?? [])
                     ->prio($script->prio)
@@ -65,7 +65,7 @@ final class Scripts extends AbstractAssets
             }
 
             $script->src((string)($script->src ?? $this->getSrc($script, 'js')))
-                   ->ver($script->ver ?? (string)(file_exists($file) ? filemtime($file) : ''));
+                   ->ver($script->ver ?: (string)(file_exists($file) ? filemtime($file) : ''));
 
             wp_register_script(
                 $script->handle,

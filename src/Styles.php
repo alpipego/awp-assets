@@ -57,7 +57,7 @@ final class Styles extends AbstractAssets
 
             $style
                 ->src((string)($style->src ?? $this->getSrc($style, 'css')))
-                ->ver($style->ver ?? (string)(file_exists($file) ? filemtime($file) : ''));
+                ->ver($style->ver ?: (string)(file_exists($file) ? filemtime($file) : ''));
 
             wp_register_style(
                 $style->handle,
