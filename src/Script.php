@@ -24,19 +24,19 @@ namespace Alpipego\AWP\Assets;
  * @method ScriptInterface position(string $position = 'after')
  * @method ScriptInterface condition(callable $cond)
  */
-final class Script extends Asset implements ScriptInterface, AssetsResolverInterface
+class Script extends Asset implements ScriptInterface, AssetsResolverInterface
 {
     public $in_footer = true;
     public $localize = [];
 
-    public function in_footer(bool $in_footer = true) : ScriptInterface
+    public function in_footer(bool $in_footer = true): ScriptInterface
     {
         $this->args = $in_footer;
 
         return $this->__call(__FUNCTION__, [$in_footer]);
     }
 
-    public function localize(array $localize = []) : ScriptInterface
+    public function localize(array $localize = []): ScriptInterface
     {
         return $this->__call(__FUNCTION__, [$localize]);
     }

@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
@@ -35,14 +35,14 @@ class Asset implements AssetInterface, AssetsResolverInterface
     public $args = null;
     public $pos = 'after';
 
-    public function __construct($handle)
+    public function __construct(string $handle)
     {
         $this->handle = $handle;
     }
 
     public function __call($name, $args)
     {
-        if (! isset($args[0])) {
+        if (!isset($args[0])) {
             return $this;
         }
 
@@ -53,7 +53,7 @@ class Asset implements AssetInterface, AssetsResolverInterface
     {
         if (property_exists($this, $name)) {
             if (is_array($this->$name)) {
-                if (! is_array($value)) {
+                if (!is_array($value)) {
                     $this->$name[] = $value;
                 } else {
                     $this->$name = array_merge($this->$name, $value);
@@ -66,9 +66,9 @@ class Asset implements AssetInterface, AssetsResolverInterface
         return $this;
     }
 
-    public function condition(callable $cond) : AssetInterface
+    public function condition(callable $cond): AssetInterface
     {
-        if (! did_action('wp')) {
+        if (!did_action('wp')) {
             add_action('wp', function () use ($cond) {
                 $this->condition = call_user_func($cond, $this);
             });

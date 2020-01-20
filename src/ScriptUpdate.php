@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: alpipego
- * Date: 21.02.2018
- * Time: 12:50
- */
+
 declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
@@ -23,10 +18,18 @@ namespace Alpipego\AWP\Assets;
  * @method ScriptInterface data(array $data = [])
  * @method ScriptInterface position(string $position = 'after')
  * @method ScriptInterface condition(callable $cond)
+ * @method ScriptInterface in_footer(bool $in_footer = true)
+ * @method ScriptInterface localize(array $localize = [])
  */
-interface ScriptInterface extends AssetInterface
+class ScriptUpdate extends Script implements ScriptInterface, AssetsResolverInterface
 {
-    public function in_footer(bool $in_footer = false): self;
+    use AssetUpdateTrait;
 
-    public function localize(array $localize = []): self;
+    public const UPDATER = true;
+
+    public function __construct(string $handle)
+    {
+        $this->resetDefaults($this);
+        parent::__construct($handle);
+    }
 }

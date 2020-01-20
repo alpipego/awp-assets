@@ -71,6 +71,17 @@ final class Styles extends AbstractAssets
         }
     }
 
+    protected function mergeUpdates(Asset $asset): Asset
+    {
+        /** @var Style $style */
+        $style = parent::mergeUpdates($asset);
+        if (is_null($style)) {
+            return $asset;
+        }
+
+        return $style;
+    }
+
     public function lazyCss($tag, $handle)
     {
         /** @var Asset $asset */

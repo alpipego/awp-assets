@@ -41,25 +41,41 @@ final class Scripts extends AbstractAssets
             array_walk($group, function ($handle) use ($script, $registered) {
                 /** @var \_WP_Dependency $registeredScript */
                 $registeredScript = $registered[$handle];
-                $dep              = (new Script($handle))
+
+                $this->assets[] = (new Script($handle))
                     ->action('ignore')
                     ->src($registeredScript->src)
                     ->ver($registeredScript->ver ?: null)
                     ->deps($registeredScript->deps)
                     ->extra($registeredScript->extra ?? [])
-                    ->prio($script->prio)
+                    ->prio($script->prio ?? '')
                     ->in_footer($script->in_footer);
                 wp_deregister_script($handle);
-                $this->assets[] = $dep;
             });
         }
+    }
+
+    protected function mergeUpdates(Asset $asset): Asset
+    {
+        /** @var Script $script */
+        $script = parent::mergeUpdates($asset);
+        if (is_null($script)) {
+            return $asset;
+        }
+        $registered = wp_scripts()->registered[$script->handle];
+        $script
+            ->localize($script->localize ?? [])
+            ->in_footer(!empty($registered->extra['group']));
+
+        return $script;
     }
 
     public function register()
     {
         /** @var Script $script */
         foreach ($this->assets as $script) {
-            $file = '';
+            $script = $this->mergeUpdates($script);
+            $file   = '';
             if (is_null($script->src)) {
                 $file = $this->getPath($script, 'js');
             }

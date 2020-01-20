@@ -5,7 +5,7 @@
  * Date: 21.02.2018
  * Time: 12:34
  */
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 

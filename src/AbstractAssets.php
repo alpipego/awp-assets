@@ -81,6 +81,28 @@ abstract class AbstractAssets
         return $asset;
     }
 
+    protected function mergeUpdates(Asset $asset): ?Asset
+    {
+        $registeredGroup = call_user_func("wp_{$this->group}s")->registered;
+        if (!array_key_exists($asset->handle, $registeredGroup)) {
+            return null;
+        }
+        $registered = $registeredGroup[$asset->handle];
+
+        $asset
+            ->src($asset->src ?? $registered->src)
+            ->deps($asset->deps ?? $registered->deps)
+            ->ver($asset->ver ?? (is_string($registered->ver) ? $registered->ver : null))
+            ->min($asset->min ?? false)
+            ->condition(function () use ($asset) {
+                return is_null($asset->condition) ?: $asset->condition;
+            })
+            ->extra($asset->extra ?? $registered->extra ?: [])
+            ->prio($asset->prio ?? '');
+
+        return $asset;
+    }
+
     protected function remapFields(Asset &$asset)
     {
         $fields = array_merge(
@@ -99,18 +121,21 @@ abstract class AbstractAssets
         );
 
         array_walk($fields, function ($value, $field) use (&$asset) {
+            if ($field === 'ver' && is_bool($value)) {
+                $value = null;
+            }
             $asset->{$field} = $value;
         });
     }
 
     protected function mergeData(Asset $asset)
     {
-        foreach (array_merge($asset->data, $asset->extra) as $key => $data) {
+        foreach (array_merge($asset->data ?? [], $asset->extra ?? []) as $key => $data) {
             $this->collection->add_data($asset->handle, $key, $data);
         }
     }
 
-    protected function getSrc(Asset $asset, string $fragment) : string
+    protected function getSrc(Asset $asset, string $fragment): string
     {
 
         $assetDir = (string)apply_filters('wp-hibou/assets/dir', get_stylesheet_directory_uri());
@@ -120,7 +145,7 @@ abstract class AbstractAssets
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetDir), $fragment, $handle);
     }
 
-    protected function getPath(Asset $asset, string $fragment) : string
+    protected function getPath(Asset $asset, string $fragment): string
     {
         $assetPath = (string)apply_filters('wp-hibou/assets/path', get_stylesheet_directory());
         $assetPath = (string)apply_filters('awp/assets/path', $assetPath);
@@ -151,9 +176,11 @@ abstract class AbstractAssets
         }, 5);
 
         if ($asset->condition) {
-            array_walk($asset->data, function ($value, $key) use ($asset) {
-                $this->collection->add_data($asset->handle, $key, $value);
-            });
+            if (is_array($asset->data)) {
+                array_walk($asset->data, function ($value, $key) use ($asset) {
+                    $this->collection->add_data($asset->handle, $key, $value);
+                });
+            }
             call_user_func("wp_enqueue_{$this->group}", $asset->handle);
         }
     }
@@ -180,7 +207,7 @@ abstract class AbstractAssets
         });
     }
 
-    protected function getGroup(string $handle) : array
+    protected function getGroup(string $handle): array
     {
         $alias = new \_WP_Dependency();
         if (
@@ -204,14 +231,14 @@ abstract class AbstractAssets
         });
     }
 
-    protected function getGroupMember(string $handle) : array
+    protected function getGroupMember(string $handle): array
     {
         return array_keys(
             array_filter(
                 array_column($this->collection->registered, 'deps', 'handle'),
                 function ($deps) use ($handle) {
                     return in_array($handle, $deps, true);
-                    }
+                }
             )
         );
     }
@@ -233,8 +260,8 @@ abstract class AbstractAssets
             return false;
         }
 
-        $file = array_shift($file);
-        $filesize=(int)apply_filters('wp-hibou/assets/inline/filesize', 2000);
+        $file     = array_shift($file);
+        $filesize = (int)apply_filters('wp-hibou/assets/inline/filesize', 2000);
         if (filesize($file) <= (int)apply_filters('awp/assets/inline/filesize', $filesize)) {
             $this->dequeue($asset);
 

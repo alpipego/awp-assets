@@ -21,12 +21,12 @@ trait AssetsResolverTrait
         ];
     }
 
-    public function is_registered(string $handle = null, string $type = 'script') : bool
+    public function is_registered(string $handle = null, string $type = 'script'): bool
     {
         return $this->is(__FUNCTION__, $handle, $type);
     }
 
-    private function is(string $name, string $handle = null, string $type = '') : bool
+    private function is(string $name, string $handle = null, string $type = ''): bool
     {
         if (!in_array($type, ['style', 'script'], true)) {
             return false;
@@ -51,17 +51,17 @@ trait AssetsResolverTrait
         return $func($handle, $state);
     }
 
-    public function is_enqueued(string $handle = null, string $type = 'script') : bool
+    public function is_enqueued(string $handle = null, string $type = 'script'): bool
     {
         return $this->is(__FUNCTION__, $handle, $type);
     }
 
-    public function is_to_do(string $handle = null, string $type = 'script') : bool
+    public function is_to_do(string $handle = null, string $type = 'script'): bool
     {
         return $this->is(__FUNCTION__, $handle, $type);
     }
 
-    public function is_done(string $handle = null, string $type = 'script') : bool
+    public function is_done(string $handle = null, string $type = 'script'): bool
     {
         return $this->is(__FUNCTION__, $handle, $type);
     }

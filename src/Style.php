@@ -5,11 +5,26 @@
  * Date: 05.12.2016
  * Time: 13:38
  */
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
-final class Style extends Asset implements StyleInterface, AssetsResolverInterface
+/**
+ * class Style
+ * @package Alpipego\AWP\Assets
+ *
+ * @method StyleInterface min(bool $min = false)
+ * @method StyleInterface src(string $src = null)
+ * @method StyleInterface ver(string $ver = null)
+ * @method StyleInterface deps(array $deps = [])
+ * @method StyleInterface extra(array $extra = [])
+ * @method StyleInterface action(string $action = '')
+ * @method StyleInterface prio(string $prio = '')
+ * @method StyleInterface data(array $data = [])
+ * @method StyleInterface condition(callable $cond)
+ * @method StyleInterface position(string $position = 'after')
+ */
+class Style extends Asset implements StyleInterface, AssetsResolverInterface
 {
     public $media = 'screen';
 

@@ -5,7 +5,7 @@
  * Date: 06.12.2016
  * Time: 09:41
  */
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
@@ -13,10 +13,10 @@ namespace Alpipego\AWP\Assets;
  * Class AssetsCollection
  * @package Alpipego\AWP\Assets
  *
- * @method add(AssetInterface $asset): ?AssetInterface
- * @method remove(AssetInterface $asset): ?AssetInterface
- * @method inline(AssetInterface $asset): ?AssetInterface
- * @method update(AssetInterface $asset): ?AssetInterface
+ * @method AssetInterface add(AssetInterface $asset)
+ * @method AssetInterface remove(AssetInterface $asset)
+ * @method AssetInterface inline(AssetInterface $asset)
+ * @method AssetInterface update(AssetInterface $asset)
  */
 class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInterface
 {
@@ -49,9 +49,14 @@ class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInter
         return $this->assets[$type][$asset->handle] = $asset;
     }
 
-    private function getType(Asset $asset)
+    private function getType(Asset $asset): string
     {
-        $class = explode('\\', get_class($asset));
+        $ref   = new \ReflectionClass($asset);
+        $class = $ref->name;
+        if ($ref->hasConstant('UPDATER') || $ref->getConstant('UPDATER')) {
+            $class = $ref->getParentClass()->name;
+        }
+        $class = explode('\\', $class);
 
         return end($class);
     }
@@ -70,7 +75,7 @@ class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInter
     private function arrayKeyExistsRecursive(array $array, string ...$keys): bool
     {
         foreach ($keys as $key) {
-            if (! array_key_exists($key, $array)) {
+            if (!array_key_exists($key, $array)) {
                 return false;
             }
             $array = $array[$key];
