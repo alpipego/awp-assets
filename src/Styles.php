@@ -9,21 +9,6 @@ declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
-/**
- * Class Styles
- * @package Alpipego\AWP\Assets
- *
- * @method StyleInterface min(bool $min = false)
- * @method StyleInterface src(string $src = null)
- * @method StyleInterface ver(string $ver = null)
- * @method StyleInterface deps(array $deps = [])
- * @method StyleInterface extra(array $extra = [])
- * @method StyleInterface action(string $action = '')
- * @method StyleInterface prio(string $prio = '')
- * @method StyleInterface data(array $data = [])
- * @method StyleInterface condition(callable $cond)
- * @method StyleInterface position(string $position = 'after')
- */
 final class Styles extends AbstractAssets
 {
     public function __construct(array $styles, $type = 'wp')
@@ -37,6 +22,11 @@ final class Styles extends AbstractAssets
     {
         parent::run();
         add_filter('style_loader_tag', [$this, 'lazyCss'], 10, 2);
+    }
+
+    protected function extra(AssetInterface $style) : string
+    {
+        return '';
     }
 
     public function register()

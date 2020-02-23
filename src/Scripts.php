@@ -106,6 +106,11 @@ final class Scripts extends AbstractAssets
         });
     }
 
+    protected function extra(AssetInterface $script) : string
+    {
+        return wp_scripts()->registered[$script->handle]->extra['data'] ?? '';
+    }
+
     public function deferScripts($tag, $handle)
     {
         /** @var Script $asset */

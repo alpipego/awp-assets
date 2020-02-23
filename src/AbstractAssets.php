@@ -49,6 +49,8 @@ abstract class AbstractAssets
 
     abstract public function register();
 
+    abstract protected function extra(AssetInterface $asset): string;
+
     public function enqueueAssets()
     {
         array_walk($this->assets, function (Asset $asset) {
@@ -262,64 +264,65 @@ abstract class AbstractAssets
 
         $file     = array_shift($file);
         $filesize = (int)apply_filters('wp-hibou/assets/inline/filesize', 2000);
-        if (filesize($file) <= (int)apply_filters('awp/assets/inline/filesize', $filesize)) {
-            $this->dequeue($asset);
-
-            $contents = file_get_contents($file);
-            // replace single line comments
-            $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
-            // replace multi line comments
-            $contents = preg_replace('%(?:\s*/\*+.+/)%s', '', $contents);
-
-            $dependencies = [];
-            foreach ($asset->deps as $dep) {
-                if (!empty($group = $this->getGroup($dep))) {
-                    foreach ($group as $item) {
-                        $dependencies[] = $item;
-                    }
-                    continue;
-                }
-
-                $dependencies[] = $dep;
-            }
-            array_unique($dependencies);
-
-            if (count($dependencies) === 1) {
-                call_user_func("wp_add_inline_{$this->group}", end($dependencies), $contents);
-
-                return true;
-            }
-
-            $inlined = false;
-            foreach ($dependencies as $dependency) {
-                add_action('wp_head', function () use ($contents, $dependency, $inlined) {
-                    if (wp_script_is($dependency, 'done') && !$inlined) {
-                        printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                        $inlined = true;
-                    }
-                    if (!$inlined) {
-                        add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
-                            if (wp_script_is($dependency, 'done') && !$inlined) {
-                                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                                $inlined = true;
-                            }
-                        }, 600);
-                    }
-                }, 600);
-
-                return true;
-            }
-
-
-            $action = isset($asset->in_footer) && $asset->in_footer ? 'wp_footer' : 'wp_head';
-            add_action($action, function () use ($contents) {
-                printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-            });
+        if (filesize($file) > (int)apply_filters('awp/assets/inline/filesize', $filesize)) {
+            $this->enqueue($asset);
 
             return true;
         }
 
-        $this->enqueue($asset);
+        $this->dequeue($asset);
+
+        $contents = file_get_contents($file);
+        // replace single line comments
+        $contents = preg_replace('%(?:^\s*[/]{2}.+$)%m', '', $contents);
+        // replace multi line comments
+        $contents = preg_replace('%(?:\s*/\*+.+?/)%s', '', $contents);
+
+        $contents = $this->extra($asset) . $contents;
+
+        $dependencies = [];
+        foreach ($asset->deps as $dep) {
+            if (!empty($group = $this->getGroup($dep))) {
+                foreach ($group as $item) {
+                    $dependencies[] = $item;
+                }
+                continue;
+            }
+
+            $dependencies[] = $dep;
+        }
+        array_unique($dependencies);
+
+        if (count($dependencies) === 1) {
+            call_user_func("wp_add_inline_{$this->group}", end($dependencies), $contents);
+
+            return true;
+        }
+
+        $inlined = false;
+        foreach ($dependencies as $dependency) {
+            add_action('wp_head', function () use ($contents, $dependency, $inlined) {
+                if (wp_script_is($dependency, 'done') && !$inlined) {
+                    printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                    $inlined = true;
+                }
+                if (!$inlined) {
+                    add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
+                        if (wp_script_is($dependency, 'done') && !$inlined) {
+                            printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                        }
+                    }, 600);
+                }
+            }, 600);
+
+            return true;
+        }
+
+
+        $action = isset($asset->in_footer) && $asset->in_footer ? 'wp_footer' : 'wp_head';
+        add_action($action, function () use ($contents) {
+            printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+        });
 
         return true;
     }
