@@ -17,10 +17,9 @@ namespace Alpipego\AWP\Assets;
  * @method $this data(array $data = []): AssetInterface
  * @method $this position(string $position = 'after'): AssetInterface
  */
-class Asset implements AssetInterface, AssetsResolverInterface
+abstract class Asset implements AssetInterface, AssetsResolverInterface
 {
     use AssetTrait;
-    use AssetsResolverTrait;
 
     public $handle;
     public $condition = true;
@@ -34,6 +33,7 @@ class Asset implements AssetInterface, AssetsResolverInterface
     public $data = [];
     public $args = null;
     public $pos = 'after';
+    protected $state = '';
 
     public function __construct(string $handle)
     {
@@ -78,5 +78,67 @@ class Asset implements AssetInterface, AssetsResolverInterface
 
 
         return $this;
+    }
+
+    public function state(): array
+    {
+        return array_keys(array_filter([
+            'registered' => $this->is_registered(),
+            'enqueued'   => $this->is_enqueued(),
+            'inlined'    => $this->is_inlined(),
+            'to_do'      => $this->is_to_do(),
+            'done'       => $this->is_done(),
+        ]));
+    }
+
+    public function is_inlined(): bool
+    {
+        return $this->action === 'inline';
+    }
+
+    public function is_registered(string $handle = null, string $type = 'script'): bool
+    {
+        return $this->is(__FUNCTION__);
+    }
+
+    public function is_enqueued(string $handle = null, string $type = 'script'): bool
+    {
+        return $this->is(__FUNCTION__);
+    }
+
+    public function is_to_do(): bool
+    {
+        return $this->state === 'to_do' || $this->is(__FUNCTION__);
+    }
+
+    public function is_done(): bool
+    {
+        return $this->state === 'done' || $this->is(__FUNCTION__);
+    }
+
+    private function is(string $state): bool
+    {
+        $type  = strtolower((new \ReflectionClass($this))->getShortName());
+        $state = strtolower(str_replace('is_', '', $state));
+        $func  = "wp_{$type}_is";
+
+        return $func($this->handle, $state);
+    }
+
+    public function done()
+    {
+        $this->state = 'done';
+    }
+
+    public function to_do()
+    {
+        $this->state = 'to_do';
+    }
+
+    protected function resetDefaults(Asset &$asset)
+    {
+        foreach (get_object_vars($asset) as $property => $value) {
+            $asset->{$property} = null;
+        }
     }
 }

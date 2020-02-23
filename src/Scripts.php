@@ -9,7 +9,9 @@ declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
-final class Scripts extends AbstractAssets
+use Alpipego\AWP\Assets\Exceptions\AssetNotFoundException;
+
+final class Scripts extends AbstractAssets implements AssetsInterface
 {
     public function __construct(array $scripts, $type = 'wp')
     {
@@ -106,23 +108,29 @@ final class Scripts extends AbstractAssets
         });
     }
 
-    protected function extra(AssetInterface $script) : string
+    protected function extra(AssetInterface $script): string
     {
         return wp_scripts()->registered[$script->handle]->extra['data'] ?? '';
     }
 
-    public function deferScripts($tag, $handle)
+    public function deferScripts(string $tag, string $handle): string
     {
-        /** @var Script $asset */
-        foreach ($this->assets as $asset) {
-            if ($asset->handle === $handle) {
-                if ($asset->prio === 'defer') {
-                    return str_replace(' src', ' defer="defer" src', $tag);
-                }
-                if ($asset->prio === 'async') {
-                    return str_replace(' src', ' async="async" src', $tag);
-                }
-            }
+        try {
+            $asset = $this->getAsset($handle);
+        } catch (AssetNotFoundException $e) {
+            return $tag;
+        }
+
+        if (empty($asset->prio)) {
+            return $tag;
+        }
+
+        if ($asset->prio === 'defer') {
+            return str_replace(' src', ' defer="defer" src', $tag);
+        }
+
+        if ($asset->prio === 'async') {
+            return str_replace(' src', ' async="async" src', $tag);
         }
 
         return $tag;

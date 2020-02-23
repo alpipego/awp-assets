@@ -18,7 +18,7 @@ namespace Alpipego\AWP\Assets;
  * @method ScriptInterface ver(string $ver = null)
  * @method ScriptInterface deps(array $deps = [])
  * @method ScriptInterface action(string $action = '')
- * @method StyleInterface extra(array $extra = [])
+ * @method ScriptInterface extra(array $extra = [])
  * @method ScriptInterface prio(string $prio = '')
  * @method ScriptInterface data(array $data = [])
  * @method ScriptInterface position(string $position = 'after')

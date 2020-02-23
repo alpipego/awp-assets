@@ -18,10 +18,9 @@ namespace Alpipego\AWP\Assets;
  * @method AssetInterface inline(AssetInterface $asset)
  * @method AssetInterface update(AssetInterface $asset)
  */
-class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInterface
+class AssetsCollection implements AssetsCollectionInterface
 {
     use AssetsCollectionTrait;
-    use AssetsResolverTrait;
 
     private $assets = [];
     private $type;
@@ -36,7 +35,9 @@ class AssetsCollection implements AssetsCollectionInterface, AssetsResolverInter
         array_walk($this->assets, function (array $assets, string $group) {
             $classname = __NAMESPACE__ . '\\' . $group . 's';
             if (class_exists($classname)) {
-                (new $classname($assets, $this->type))->run();
+                /** @var AbstractAssets $asset */
+                $asset = new $classname($assets, $this->type);
+                $asset->run();
             }
         });
     }

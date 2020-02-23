@@ -9,11 +9,15 @@ declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
-abstract class AbstractAssets
+use Alpipego\AWP\Assets\Exceptions\AssetNotFoundException;
+use WP_Scripts;
+use WP_Styles;
+
+abstract class AbstractAssets implements AssetsInterface
 {
     protected $assets = [];
     /**
-     * @var \WP_Styles | \WP_Scripts $collection
+     * @var WP_Styles | WP_Scripts $collection
      */
     protected $collection;
     /**
@@ -139,9 +143,7 @@ abstract class AbstractAssets
 
     protected function getSrc(Asset $asset, string $fragment): string
     {
-
-        $assetDir = (string)apply_filters('wp-hibou/assets/dir', get_stylesheet_directory_uri());
-        $assetDir = (string)apply_filters('awp/assets/dir', $assetDir);
+        $assetDir = (string)apply_filters('awp/assets/dir', get_stylesheet_directory_uri());
         $handle   = $asset->min ? $asset->handle . '.min' : $asset->handle;
 
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetDir), $fragment, $handle);
@@ -149,11 +151,19 @@ abstract class AbstractAssets
 
     protected function getPath(Asset $asset, string $fragment): string
     {
-        $assetPath = (string)apply_filters('wp-hibou/assets/path', get_stylesheet_directory());
-        $assetPath = (string)apply_filters('awp/assets/path', $assetPath);
+        $assetPath = (string)apply_filters('awp/assets/path', get_stylesheet_directory());
         $handle    = $asset->min ? $asset->handle . '.min' : $asset->handle;
 
         return sprintf('%1$s/%2$s/%3$s.%2$s', untrailingslashit($assetPath), $fragment, $handle);
+    }
+
+    protected function getAsset(string $handle): Asset
+    {
+        if (!array_key_exists($handle, $this->assets)) {
+            throw new AssetNotFoundException(sprintf('%s not found in %s', $handle, $this->group));
+        }
+
+        return $this->assets[$handle];
     }
 
     private function requeue(Asset $asset)
@@ -211,15 +221,14 @@ abstract class AbstractAssets
 
     protected function getGroup(string $handle): array
     {
-        $alias = new \_WP_Dependency();
         if (
             array_key_exists($handle, $this->collection->registered)
             && empty($this->collection->registered[$handle]->src)
         ) {
-            $alias = $this->collection->registered[$handle];
+            return $this->collection->registered[$handle]->deps;
         }
 
-        return $alias->deps;
+        return [];
     }
 
     private function dequeueGroupMember(string $handle)
@@ -263,14 +272,14 @@ abstract class AbstractAssets
         }
 
         $file     = array_shift($file);
-        $filesize = (int)apply_filters('wp-hibou/assets/inline/filesize', 2000);
-        if (filesize($file) > (int)apply_filters('awp/assets/inline/filesize', $filesize)) {
+        if (filesize($file) > (int)apply_filters('awp/assets/inline/filesize', 2000)) {
             $this->enqueue($asset);
 
             return true;
         }
 
         $this->dequeue($asset);
+        $asset->changeState('to_do');
 
         $contents = file_get_contents($file);
         // replace single line comments
@@ -299,30 +308,28 @@ abstract class AbstractAssets
             return true;
         }
 
-        $inlined = false;
-        foreach ($dependencies as $dependency) {
-            add_action('wp_head', function () use ($contents, $dependency, $inlined) {
-                if (wp_script_is($dependency, 'done') && !$inlined) {
+        add_action('wp_head', function () use ($asset, &$dependencies, $contents) {
+            if (!($asset->in_footer ?? false)) {
+                $dependencies = array_filter($dependencies, function (string $dependency) {
+                    return !call_user_func("wp_{$this->group}_is", $dependency, 'done');
+                });
+                if (empty($dependencies)) {
                     printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                    $inlined = true;
+                    $asset->changeState('done', 'to_do');
+
+                    return;
                 }
-                if (!$inlined) {
-                    add_action('wp_footer', function () use ($contents, $dependency, $inlined) {
-                        if (wp_script_is($dependency, 'done') && !$inlined) {
-                            printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-                        }
-                    }, 600);
+            }
+            add_action('wp_footer', function () use ($asset, &$dependencies, $contents) {
+                $dependencies = array_filter($dependencies, function (string $dependency) {
+                    return !call_user_func("wp_{$this->group}_is", $dependency, 'done');
+                });
+                if (empty($dependencies)) {
+                    printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
+                    $asset->changeState('done', 'to_do');
                 }
             }, 600);
-
-            return true;
-        }
-
-
-        $action = isset($asset->in_footer) && $asset->in_footer ? 'wp_footer' : 'wp_head';
-        add_action($action, function () use ($contents) {
-            printf('<%1$s>%2$s</%1$s>', $this->group, $contents);
-        });
+        }, 600);
 
         return true;
     }

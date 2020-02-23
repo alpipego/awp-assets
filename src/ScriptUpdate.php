@@ -23,8 +23,6 @@ namespace Alpipego\AWP\Assets;
  */
 class ScriptUpdate extends Script implements ScriptInterface, AssetsResolverInterface
 {
-    use AssetUpdateTrait;
-
     public const UPDATER = true;
 
     public function __construct(string $handle)

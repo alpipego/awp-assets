@@ -9,7 +9,9 @@ declare(strict_types = 1);
 
 namespace Alpipego\AWP\Assets;
 
-final class Styles extends AbstractAssets
+use Alpipego\AWP\Assets\Exceptions\AssetNotFoundException;
+
+final class Styles extends AbstractAssets implements AssetsInterface
 {
     public function __construct(array $styles, $type = 'wp')
     {
@@ -24,7 +26,7 @@ final class Styles extends AbstractAssets
         add_filter('style_loader_tag', [$this, 'lazyCss'], 10, 2);
     }
 
-    protected function extra(AssetInterface $style) : string
+    protected function extra(AssetInterface $style): string
     {
         return '';
     }
@@ -70,41 +72,46 @@ final class Styles extends AbstractAssets
         return $style;
     }
 
-    public function lazyCss($tag, $handle)
+    public function lazyCss(string $tag, string $handle): string
     {
-        /** @var Asset $asset */
-        foreach ($this->assets as $asset) {
-            if ($asset->handle === $handle && !empty($asset->prio) && $asset->prio === 'defer') {
-                $this->addLazyPolyfill();
-                add_action('wp_head', function () use ($tag) {
-                    printf('<noscript>%s</noscript>', $tag);
-                });
-
-                if (!preg_match('/href=[\'"]([^\'"]+)[\'"]/i', $tag, $href)) {
-                    return $tag;
-                }
-                if (!preg_match('/media=[\'"]([^\'"]+)[\'"]/', $tag, $media)) {
-                    $media[1] = '';
-                }
-
-                return sprintf(
-                    '<link href="%s" as="style" media="%s" rel="preload" onload="this.onload=null;this.rel=\'stylesheet\'">',
-                    $href[1],
-                    $media[1]
-                );
-            }
+        try {
+            $asset = $this->getAsset($handle);
+        } catch (AssetNotFoundException $e) {
+            return $tag;
         }
 
-        return $tag;
+        if (empty($asset->prio) || $asset->prio !== 'defer') {
+            return $tag;
+        }
+
+        $this->addLazyPolyfill();
+        add_action('wp_head', function () use ($tag) {
+            printf('<noscript>%s</noscript>', $tag);
+        });
+
+        if (!preg_match('/href=[\'"]([^\'"]+)[\'"]/i', $tag, $href)) {
+            return $tag;
+        }
+
+        if (!preg_match('/media=[\'"]([^\'"]+)[\'"]/', $tag, $media)) {
+            $media[1] = '';
+        }
+
+        return sprintf(
+            '<link href="%s" as="style" media="%s" rel="preload" onload="this.onload=null;this.rel=\'stylesheet\'">',
+            $href[1],
+            $media[1]
+        );
     }
 
     private function addLazyPolyfill()
     {
-        static $count = 0;
-        $count++;
-        if ($count > 1) {
+        static $present = false;
+        if ($present) {
             return;
         }
+
+        $present = true;
 
         add_action('wp_head', function () {
             printf('<script>%s</script>', file_get_contents(__DIR__ . '/../inc/csspreload.js'));
