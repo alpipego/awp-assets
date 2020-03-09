@@ -26,6 +26,7 @@ namespace Alpipego\AWP\Assets;
  */
 class Style extends Asset implements StyleInterface, AssetsResolverInterface
 {
+    const TYPE = 'style';
     public $media = 'screen';
 
     public function media(string $media = 'screen'): StyleInterface

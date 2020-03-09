@@ -118,8 +118,8 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
 
     private function is(string $state): bool
     {
-        $type  = strtolower((new \ReflectionClass($this))->getShortName());
         $state = strtolower(str_replace('is_', '', $state));
+        $type  = $this->getType();
         $func  = "wp_{$type}_is";
 
         return $func($this->handle, $state);
@@ -140,5 +140,10 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
         foreach (get_object_vars($asset) as $property => $value) {
             $asset->{$property} = null;
         }
+    }
+
+    protected function getType(): string
+    {
+        return static::TYPE;
     }
 }

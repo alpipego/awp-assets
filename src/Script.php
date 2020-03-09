@@ -26,6 +26,7 @@ namespace Alpipego\AWP\Assets;
  */
 class Script extends Asset implements ScriptInterface, AssetsResolverInterface
 {
+    const TYPE = 'script';
     public $in_footer = true;
     public $localize = [];
 
