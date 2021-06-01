@@ -1,7 +1,10 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Alpipego\AWP\Assets;
+
+use WP_Dependencies;
 
 /**
  * Class Asset
@@ -42,7 +45,7 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
 
     public function __call($name, $args)
     {
-        if (!isset($args[0])) {
+        if ( ! isset($args[0])) {
             return $this;
         }
 
@@ -53,7 +56,7 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
     {
         if (property_exists($this, $name)) {
             if (is_array($this->$name)) {
-                if (!is_array($value)) {
+                if ( ! is_array($value)) {
                     $this->$name[] = $value;
                 } else {
                     $this->$name = array_merge($this->$name, $value);
@@ -68,7 +71,7 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
 
     public function condition(callable $cond): AssetInterface
     {
-        if (!did_action('wp')) {
+        if ( ! did_action('wp')) {
             add_action('wp', function () use ($cond) {
                 $this->condition = call_user_func($cond, $this);
             });
@@ -89,6 +92,32 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
             'to_do'      => $this->is_to_do(),
             'done'       => $this->is_done(),
         ]));
+    }
+
+    public function changeState(string $to, string $from = null)
+    {
+        $func = 'wp_' . $this->getType() .'s';
+        if (!function_exists($func)) {
+            return;
+        }
+
+        /** @var WP_Dependencies $types */
+        $types = $func();
+
+        if (
+            ! property_exists($func(), $to)
+            || ($from !== null && ! property_exists($func(), $from))
+        ) {
+            return;
+        }
+
+        if ($from !== null && ($key = array_search($this->handle, $types->$from ?? [])) !== false) {
+            unset($types->$from[$key]);
+        }
+
+        if (array_search($this->handle, $types->$to ?? []) === false) {
+            $types->$to[] = $this->handle;
+        }
     }
 
     public function is_inlined(): bool
