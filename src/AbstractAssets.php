@@ -279,7 +279,6 @@ abstract class AbstractAssets implements AssetsInterface
         }
 
         $this->dequeue($asset);
-        $asset->changeState('to_do');
 
         $contents = file_get_contents($file);
         // replace single line comments
