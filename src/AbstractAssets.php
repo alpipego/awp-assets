@@ -261,7 +261,7 @@ abstract class AbstractAssets implements AssetsInterface
 
     private function inline(Asset $asset)
     {
-        if (!$asset->condition || in_array('inlined', $asset->state(), true)) {
+        if (!$asset->condition || in_array('done', $asset->state(), true)) {
             return false;
         }
 
