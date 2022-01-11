@@ -13,21 +13,21 @@ trait AssetsCollectionTrait
 {
     public function add(AssetInterface $asset): ?AssetInterface
     {
-        return $this->__call(__FUNCTION__, $asset);
+        return $this->__call(__FUNCTION__, [$asset]);
     }
 
     public function remove(AssetInterface $asset): ?AssetInterface
     {
-        return $this->__call(__FUNCTION__, $asset);
+        return $this->__call(__FUNCTION__, [$asset]);
     }
 
     public function update(AssetInterface $asset): ?AssetInterface
     {
-        return $this->__call(__FUNCTION__, $asset);
+        return $this->__call(__FUNCTION__, [$asset]);
     }
 
     public function inline(AssetInterface $asset): ?AssetInterface
     {
-        return $this->__call(__FUNCTION__, $asset);
+        return $this->__call(__FUNCTION__, [$asset]);
     }
 }

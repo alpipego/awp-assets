@@ -22,10 +22,10 @@ class AssetsCollection implements AssetsCollectionInterface
 {
     use AssetsCollectionTrait;
 
-    private $assets = [];
-    private $type;
+    private array $assets = [];
+    private string $type;
 
-    public function __construct($type = 'wp')
+    public function __construct(string $type = 'wp')
     {
         $this->type = $type;
     }
@@ -42,8 +42,9 @@ class AssetsCollection implements AssetsCollectionInterface
         });
     }
 
-    public function __call(string $name, Asset $asset): ?AssetInterface
+    public function __call(string $name, array $arguments): ?AssetInterface
     {
+        $asset         = $arguments[0];
         $asset->action = $name;
         $type          = $this->getType($asset);
 
