@@ -3,7 +3,7 @@
   "description": "Improve handling of assets (js, css) in WordPress",
   "type": "library",
   "require": {
-    "php": "^7.1"
+    "php": "^7.1|^8.0"
   },
   "suggest": {
     "johnpbloch/wordpress-core": ""
