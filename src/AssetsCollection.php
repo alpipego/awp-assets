@@ -55,7 +55,7 @@ class AssetsCollection implements AssetsCollectionInterface
     {
         $ref   = new \ReflectionClass($asset);
         $class = $ref->name;
-        if ($ref->hasConstant('UPDATER') || $ref->getConstant('UPDATER')) {
+        if ($ref->hasConstant('UPDATER') && $ref->getConstant('UPDATER')) {
             $class = $ref->getParentClass()->name;
         }
         $class = explode('\\', $class);

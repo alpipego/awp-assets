@@ -94,7 +94,7 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
         ]));
     }
 
-    public function changeState(string $to, string $from = null)
+    public function changeState(string $to, ?string $from = null)
     {
         $func = 'wp_' . $this->getType() .'s';
         if (!function_exists($func)) {
@@ -125,12 +125,12 @@ abstract class Asset implements AssetInterface, AssetsResolverInterface
         return $this->action === 'inline';
     }
 
-    public function is_registered(string $handle = null, string $type = 'script'): bool
+    public function is_registered(?string $handle = null, string $type = 'script'): bool
     {
         return $this->is(__FUNCTION__);
     }
 
-    public function is_enqueued(string $handle = null, string $type = 'script'): bool
+    public function is_enqueued(?string $handle = null, string $type = 'script'): bool
     {
         return $this->is(__FUNCTION__);
     }

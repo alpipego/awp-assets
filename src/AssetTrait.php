@@ -16,12 +16,12 @@ trait AssetTrait
         return $this->__call(__FUNCTION__, func_get_args());
     }
 
-    public function src(string $src = null): AssetInterface
+    public function src(?string $src = null): AssetInterface
     {
         return $this->__call(__FUNCTION__, func_get_args());
     }
 
-    public function ver(string $ver = null): AssetInterface
+    public function ver(?string $ver = null): AssetInterface
     {
         return $this->__call(__FUNCTION__, func_get_args());
     }

@@ -13,9 +13,9 @@ interface AssetInterface
 {
     public function min(bool $min = false): self;
 
-    public function src(string $src = null): self;
+    public function src(?string $src = null): self;
 
-    public function ver(string $ver = null): self;
+    public function ver(?string $ver = null): self;
 
     public function deps(array $deps = []): self;
 
